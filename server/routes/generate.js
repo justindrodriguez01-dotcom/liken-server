@@ -1,9 +1,10 @@
-const express     = require("express");
-const OpenAI      = require("openai");
-const requireAuth = require("../middleware/auth");
+const express = require("express");
+const OpenAI  = require("openai");
 
 const router = express.Router();
-router.use(requireAuth);
+// TODO: re-add auth middleware after frontend auth is implemented
+// const requireAuth = require("../middleware/auth");
+// router.use(requireAuth);
 
 function getOpenAI() {
   return new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
