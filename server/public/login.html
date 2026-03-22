@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Log in — ColdMatch</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #f5f5f5;
+      color: #111827;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    nav {
+      background: #ffffff;
+      border-bottom: 1px solid #e5e7eb;
+      padding: 0 24px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+    }
+    .logo {
+      font-size: 15px;
+      font-weight: 700;
+      color: #111827;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      letter-spacing: -0.02em;
+    }
+    .logo span { color: #7C3AED; }
+
+    .page {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 24px;
+    }
+
+    .card {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 16px;
+      padding: 40px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+
+    .card-heading {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: #111827;
+      margin-bottom: 6px;
+    }
+    .card-sub {
+      font-size: 14px;
+      color: #6b7280;
+      margin-bottom: 28px;
+    }
+
+    .field { margin-bottom: 16px; }
+    .field label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: #374151;
+      margin-bottom: 6px;
+    }
+    .field input {
+      width: 100%;
+      padding: 10px 13px;
+      background: #ffffff;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 14px;
+      color: #111827;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .field input:focus {
+      border-color: #7C3AED;
+      box-shadow: 0 0 0 3px rgba(124,58,237,0.1);
+    }
+    .field input.error { border-color: #ef4444; }
+
+    .btn {
+      width: 100%;
+      padding: 11px;
+      background: #7C3AED;
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 4px;
+      transition: background 0.15s, transform 0.1s;
+      letter-spacing: -0.01em;
+    }
+    .btn:hover { background: #6d28d9; }
+    .btn:active { transform: scale(0.99); }
+    .btn:disabled { background: #a78bfa; cursor: not-allowed; }
+
+    .error-msg {
+      display: none;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 8px;
+      padding: 10px 13px;
+      font-size: 13px;
+      color: #b91c1c;
+      margin-bottom: 16px;
+    }
+    .error-msg.visible { display: block; }
+
+    .footer-link {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 13px;
+      color: #6b7280;
+    }
+    .footer-link a {
+      color: #7C3AED;
+      font-weight: 500;
+      text-decoration: none;
+    }
+    .footer-link a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="/" class="logo"><span>✦</span> ColdMatch</a>
+  </nav>
+
+  <div class="page">
+    <div class="card">
+      <h1 class="card-heading">Welcome back</h1>
+      <p class="card-sub">Log in to your ColdMatch account.</p>
+
+      <div id="error-msg" class="error-msg"></div>
+
+      <form id="login-form" novalidate>
+        <div class="field">
+          <label for="email">Email</label>
+          <input type="email" id="email" placeholder="you@example.com" autocomplete="email" />
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input type="password" id="password" placeholder="Your password" autocomplete="current-password" />
+        </div>
+        <button type="submit" class="btn" id="submit-btn">Log in</button>
+      </form>
+
+      <p class="footer-link">Don't have an account? <a href="/signup.html">Sign up</a></p>
+    </div>
+  </div>
+
+  <script>
+    const form      = document.getElementById('login-form');
+    const emailEl   = document.getElementById('email');
+    const passEl    = document.getElementById('password');
+    const submitBtn = document.getElementById('submit-btn');
+    const errorMsg  = document.getElementById('error-msg');
+
+    function showError(msg) {
+      errorMsg.textContent = msg;
+      errorMsg.classList.add('visible');
+    }
+    function clearError() {
+      errorMsg.classList.remove('visible');
+      [emailEl, passEl].forEach(el => el.classList.remove('error'));
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearError();
+
+      const email    = emailEl.value.trim();
+      const password = passEl.value;
+
+      if (!email) {
+        emailEl.classList.add('error');
+        return showError('Please enter your email.');
+      }
+      if (!password) {
+        passEl.classList.add('error');
+        return showError('Please enter your password.');
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Logging in…';
+
+      try {
+        const res = await fetch('/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Login failed.');
+        localStorage.setItem('cm_token', data.token);
+        window.location.href = '/dashboard.html';
+      } catch (err) {
+        showError(err.message);
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Log in';
+      }
+    });
+  </script>
+
+</body>
+</html>

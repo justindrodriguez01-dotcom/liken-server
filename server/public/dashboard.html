@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — ColdMatch</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #f5f5f5;
+      color: #111827;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    nav {
+      background: #ffffff;
+      border-bottom: 1px solid #e5e7eb;
+      padding: 0 24px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .logo {
+      font-size: 15px;
+      font-weight: 700;
+      color: #111827;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      letter-spacing: -0.02em;
+    }
+    .logo span { color: #7C3AED; }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .nav-email {
+      font-size: 13px;
+      color: #6b7280;
+    }
+    .btn-ghost {
+      background: none;
+      border: 1px solid #d1d5db;
+      border-radius: 7px;
+      padding: 6px 14px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 500;
+      color: #374151;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .btn-ghost:hover { border-color: #9ca3af; color: #111827; }
+
+    .page {
+      flex: 1;
+      padding: 48px 24px;
+      max-width: 720px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .greeting {
+      margin-bottom: 32px;
+    }
+    .greeting h1 {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: #111827;
+      margin-bottom: 6px;
+    }
+    .greeting p {
+      font-size: 15px;
+      color: #6b7280;
+    }
+
+    .card {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      padding: 28px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #111827;
+      margin-bottom: 6px;
+      letter-spacing: -0.01em;
+    }
+    .card-sub {
+      font-size: 13px;
+      color: #6b7280;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 18px;
+      background: #7C3AED;
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.15s;
+      letter-spacing: -0.01em;
+    }
+    .btn-primary:hover { background: #6d28d9; }
+    .btn-primary:disabled { background: #a78bfa; cursor: not-allowed; }
+
+    .link-subtle {
+      font-size: 13px;
+      color: #7C3AED;
+      font-weight: 500;
+      text-decoration: none;
+    }
+    .link-subtle:hover { text-decoration: underline; }
+
+    .ext-steps {
+      list-style: none;
+      margin-top: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .ext-steps li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 13px;
+      color: #374151;
+      line-height: 1.5;
+    }
+    .step-num {
+      flex-shrink: 0;
+      width: 20px;
+      height: 20px;
+      background: #f3f0ff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: #7C3AED;
+      margin-top: 1px;
+    }
+
+    .profile-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .profile-label {
+      font-size: 13px;
+      color: #6b7280;
+    }
+    .profile-value {
+      font-size: 13px;
+      font-weight: 500;
+      color: #111827;
+    }
+    .profile-divider {
+      border: none;
+      border-top: 1px solid #f3f4f6;
+      margin: 12px 0;
+    }
+
+    #loading-state {
+      text-align: center;
+      padding: 80px 0;
+      color: #9ca3af;
+      font-size: 14px;
+    }
+    #main-content { display: none; }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="/" class="logo"><span>✦</span> ColdMatch</a>
+    <div class="nav-right">
+      <span class="nav-email" id="nav-email"></span>
+      <button class="btn-ghost" id="logout-btn">Log out</button>
+    </div>
+  </nav>
+
+  <div class="page">
+    <div id="loading-state">Loading…</div>
+
+    <div id="main-content">
+      <div class="greeting">
+        <h1 id="welcome-heading">Welcome to ColdMatch.</h1>
+        <p>Your profile is set up. Install the extension to start scoring profiles.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Install the Chrome extension</div>
+        <div class="card-sub">Open LinkedIn profiles and get instant match scores + personalized cold emails.</div>
+        <a href="#" class="btn-primary" id="download-btn">Download Extension</a>
+        <ul class="ext-steps">
+          <li><span class="step-num">1</span> Download and unzip the extension file.</li>
+          <li><span class="step-num">2</span> Go to <strong>chrome://extensions</strong> and enable Developer mode.</li>
+          <li><span class="step-num">3</span> Click "Load unpacked" and select the unzipped folder.</li>
+          <li><span class="step-num">4</span> Open any LinkedIn profile and click the ColdMatch icon.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Your profile</div>
+        <div id="profile-details"></div>
+        <a href="/onboarding.html" class="link-subtle">Edit profile →</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const token = localStorage.getItem('cm_token');
+    if (!token) window.location.href = '/login.html';
+
+    document.getElementById('logout-btn').addEventListener('click', () => {
+      localStorage.removeItem('cm_token');
+      window.location.href = '/';
+    });
+
+    async function loadDashboard() {
+      try {
+        const res = await fetch('/profile', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (res.status === 401) {
+          localStorage.removeItem('cm_token');
+          window.location.href = '/login.html';
+          return;
+        }
+
+        const profile = res.ok ? await res.json() : null;
+
+        // Update greeting
+        if (profile?.name) {
+          const firstName = profile.name.split(' ')[0];
+          document.getElementById('welcome-heading').textContent = `Welcome, ${firstName}.`;
+        }
+
+        // Populate profile card
+        const details = document.getElementById('profile-details');
+        if (profile) {
+          const rows = [
+            ['Name',   profile.name],
+            ['School', profile.school],
+            ['Major',  profile.major],
+            ['Goal',   profile.goal],
+            ['Target role', profile.target_role],
+          ].filter(([, v]) => v);
+
+          details.innerHTML = rows.map(([label, value], i) => `
+            ${i > 0 ? '<hr class="profile-divider">' : ''}
+            <div class="profile-row">
+              <span class="profile-label">${label}</span>
+              <span class="profile-value">${value}</span>
+            </div>
+          `).join('');
+        } else {
+          details.innerHTML = '<p style="font-size:13px;color:#6b7280;margin-bottom:16px;">No profile found.</p>';
+        }
+
+        // Try to get email from JWT payload (base64 decode middle segment)
+        try {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          if (payload.email) document.getElementById('nav-email').textContent = payload.email;
+        } catch (_) {}
+
+        document.getElementById('loading-state').style.display = 'none';
+        document.getElementById('main-content').style.display = 'block';
+
+      } catch (err) {
+        document.getElementById('loading-state').textContent = 'Failed to load. Please refresh.';
+      }
+    }
+
+    loadDashboard();
+  </script>
+
+</body>
+</html>

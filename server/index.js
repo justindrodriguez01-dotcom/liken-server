@@ -1,6 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const cors    = require("cors");
+const path    = require("path");
 
 const authRoutes     = require("./routes/auth");
 const profileRoutes  = require("./routes/profile");
@@ -32,10 +33,8 @@ app.use(cors({
 // ─── Body parsing ─────────────────────────────────────────────────────────────
 app.use(express.json());
 
-// ─── Health check ─────────────────────────────────────────────────────────────
-app.get("/", (_req, res) => {
-  res.json({ status: "ok" });
-});
+// ─── Static files ─────────────────────────────────────────────────────────────
+app.use(express.static(path.join(__dirname, "public")));
 
 // ─── Routes ───────────────────────────────────────────────────────────────────
 app.use("/auth",     authRoutes);
@@ -48,6 +47,11 @@ app.use((err, _req, res, _next) => {
   res.status(err.status || 500).json({ error: err.message || "Internal server error" });
 });
 
+// ─── Catch-all: serve index.html for any unmatched GET ───────────────────────
+app.get("*", (_req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
 app.listen(PORT, () => {
-  console.log(`Liken server running on port ${PORT}`);
+  console.log(`ColdMatch server running on port ${PORT}`);
 });

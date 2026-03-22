@@ -1,6 +1,11 @@
 const express     = require("express");
+const multer      = require("multer");
+const OpenAI      = require("openai");
 const requireAuth = require("../middleware/auth");
 const { query }   = require("../db");
+
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 const router = express.Router();
 
@@ -71,6 +76,62 @@ router.post("/", async (req, res) => {
   } catch (err) {
     console.error("[profile/POST]", err);
     res.status(500).json({ error: "Failed to save profile" });
+  }
+});
+
+// ─── POST /profile/parse-resume ───────────────────────────────────────────────
+router.post("/parse-resume", upload.single("resume"), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: "No file uploaded." });
+  }
+  if (req.file.mimetype !== "application/pdf") {
+    return res.status(400).json({ error: "Only PDF files are supported." });
+  }
+
+  try {
+    const base64 = req.file.buffer.toString("base64");
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: `Parse this resume and extract the following fields. Return ONLY valid JSON, no markdown, no explanation.
+
+{
+  "name": "full name",
+  "school": "most recent university or college name",
+  "year": "graduation year or class year (e.g. '2026' or 'Junior')",
+  "major": "field of study",
+  "work_experience": [
+    { "company": "company name", "role": "job title" }
+  ],
+  "activities": "clubs, organizations, extracurriculars as a short text summary"
+}
+
+If a field is not found, use null. For work_experience, include up to 4 most recent entries.`,
+            },
+            {
+              type: "image_url",
+              image_url: {
+                url: `data:application/pdf;base64,${base64}`,
+              },
+            },
+          ],
+        },
+      ],
+      max_tokens: 600,
+    });
+
+    const raw = response.choices[0].message.content.trim();
+    const parsed = JSON.parse(raw);
+    res.json(parsed);
+  } catch (err) {
+    console.error("[profile/parse-resume]", err);
+    res.status(500).json({ error: "Failed to parse resume." });
   }
 });
 

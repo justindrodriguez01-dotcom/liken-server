@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ColdMatch — AI cold email copilot for LinkedIn</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #0a0a0a;
+      --bg-card: #111111;
+      --bg-card-hover: #161616;
+      --border: rgba(255,255,255,0.08);
+      --border-strong: rgba(255,255,255,0.13);
+      --purple: #7C3AED;
+      --purple-light: #8B5CF6;
+      --purple-dim: rgba(124,58,237,0.15);
+      --white: #ffffff;
+      --gray-1: #e5e7eb;
+      --gray-2: #9ca3af;
+      --gray-3: #6b7280;
+      --gray-4: #374151;
+      --radius: 12px;
+      --radius-sm: 8px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--white);
+      font-size: 16px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    .section-label {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--purple-light);
+      margin-bottom: 16px;
+    }
+
+    .fade-in {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .fade-in.visible { opacity: 1; transform: translateY(0); }
+    .fade-in-delay-1 { transition-delay: 0.1s; }
+    .fade-in-delay-2 { transition-delay: 0.2s; }
+    .fade-in-delay-3 { transition-delay: 0.3s; }
+
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10,10,10,0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+    }
+
+    .nav-logo {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--white);
+      letter-spacing: -0.02em;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .nav-logo .logo-mark { color: var(--purple-light); font-size: 18px; }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 18px;
+      background: var(--purple);
+      color: var(--white);
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.15s, transform 0.1s;
+      letter-spacing: -0.01em;
+    }
+    .btn-primary:hover { background: var(--purple-light); transform: translateY(-1px); }
+    .btn-primary:active { transform: translateY(0); }
+
+    .hero {
+      padding: 100px 0 80px;
+      text-align: center;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 5px 13px;
+      background: var(--purple-dim);
+      border: 1px solid rgba(124,58,237,0.3);
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--purple-light);
+      margin-bottom: 28px;
+    }
+    .hero-badge::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      background: var(--purple-light);
+      border-radius: 50%;
+      animation: pulse 2s ease infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    .hero h1 {
+      font-size: clamp(36px, 6vw, 64px);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      color: var(--white);
+      margin-bottom: 20px;
+      max-width: 720px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .hero h1 span {
+      background: linear-gradient(135deg, #a78bfa, #7C3AED);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      font-size: clamp(16px, 2vw, 19px);
+      color: var(--gray-2);
+      max-width: 540px;
+      margin: 0 auto 36px;
+      line-height: 1.6;
+    }
+
+    .hero-cta-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+    .hero-cta-group .btn-primary {
+      font-size: 16px;
+      padding: 13px 28px;
+      border-radius: 10px;
+    }
+
+    .hero-fine-print { font-size: 13px; color: var(--gray-3); }
+    .hero-fine-print span { color: var(--gray-2); }
+
+    .video-section { padding: 0 0 100px; }
+
+    .problem-section, .how-section {
+      padding: 100px 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .section-header { margin-bottom: 56px; }
+    .section-header h2 {
+      font-size: clamp(28px, 4vw, 42px);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+      color: var(--white);
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .card:hover { border-color: var(--border-strong); background: var(--bg-card-hover); }
+    .card-icon { font-size: 22px; margin-bottom: 14px; display: block; line-height: 1; }
+    .card h3 { font-size: 16px; font-weight: 700; letter-spacing: -0.02em; color: var(--white); margin-bottom: 8px; line-height: 1.3; }
+    .card p { font-size: 14px; color: var(--gray-2); line-height: 1.6; }
+
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      position: relative;
+    }
+    .steps-grid::before {
+      content: '';
+      position: absolute;
+      top: 28px;
+      left: calc(16.67% + 16px);
+      right: calc(16.67% + 16px);
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border-strong), transparent);
+      pointer-events: none;
+    }
+    .step {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      position: relative;
+    }
+    .step-number {
+      width: 32px;
+      height: 32px;
+      background: var(--purple-dim);
+      border: 1px solid rgba(124,58,237,0.3);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--purple-light);
+      margin-bottom: 18px;
+      letter-spacing: -0.01em;
+    }
+    .step h3 { font-size: 16px; font-weight: 700; letter-spacing: -0.02em; color: var(--white); margin-bottom: 8px; line-height: 1.3; }
+    .step p { font-size: 14px; color: var(--gray-2); line-height: 1.6; }
+
+    /* ── CTA section (replaces waitlist) ── */
+    .cta-section {
+      padding: 100px 0;
+      border-top: 1px solid var(--border);
+    }
+    .cta-card {
+      max-width: 480px;
+      margin: 0 auto;
+      background: var(--bg-card);
+      border: 1px solid var(--border-strong);
+      border-radius: 16px;
+      padding: 52px 40px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .cta-card::before {
+      content: '';
+      position: absolute;
+      top: -80px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 300px;
+      height: 200px;
+      background: radial-gradient(ellipse, rgba(124,58,237,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .cta-card h2 {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--white);
+      margin-bottom: 10px;
+    }
+    .cta-card .cta-sub {
+      font-size: 15px;
+      color: var(--gray-2);
+      margin-bottom: 28px;
+      line-height: 1.5;
+    }
+    .cta-card .btn-primary {
+      font-size: 16px;
+      padding: 13px 28px;
+      border-radius: 10px;
+      width: 100%;
+      justify-content: center;
+    }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 32px 0;
+      text-align: center;
+    }
+    .footer-text { font-size: 13px; color: var(--gray-3); letter-spacing: -0.01em; }
+    .footer-text .logo-mark { color: var(--purple-light); }
+
+    @media (max-width: 768px) {
+      .hero { padding: 72px 0 64px; }
+      .cards-grid, .steps-grid { grid-template-columns: 1fr; }
+      .steps-grid::before { display: none; }
+      .cta-card { padding: 32px 24px; }
+      .problem-section, .how-section, .cta-section { padding: 72px 0; }
+    }
+    @media (max-width: 480px) {
+      .hero h1 { font-size: 32px; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="container">
+      <div class="nav-inner">
+        <a href="/" class="nav-logo">
+          <span class="logo-mark">✦</span>
+          ColdMatch
+        </a>
+        <a href="/signup.html" class="btn-primary">Get started</a>
+      </div>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="container">
+      <div class="fade-in">
+        <div class="hero-badge">Now in private beta</div>
+      </div>
+      <div class="fade-in fade-in-delay-1">
+        <h1>Cold outreach that actually <span>gets replies.</span></h1>
+      </div>
+      <div class="fade-in fade-in-delay-2">
+        <p class="hero-sub">
+          ColdMatch scores any LinkedIn profile against your background and goals,
+          then writes a personalized email in seconds.
+        </p>
+      </div>
+      <div class="fade-in fade-in-delay-3">
+        <div class="hero-cta-group">
+          <a href="/signup.html" class="btn-primary">Get started →</a>
+          <p class="hero-fine-print"><span>Free during beta</span> · Chrome extension</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="video-section">
+    <div class="container">
+      <div class="fade-in">
+        <div style="position: relative; padding-bottom: 66.66666666666666%; height: 0;"><iframe src="https://www.loom.com/embed/4af07e4c7857494baea83aba11db8289" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></iframe></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="problem-section">
+    <div class="container">
+      <div class="fade-in section-header">
+        <span class="section-label">The Problem</span>
+        <h2>Cold outreach is broken.</h2>
+      </div>
+      <div class="cards-grid">
+        <div class="card fade-in fade-in-delay-1">
+          <span class="card-icon">🎯</span>
+          <h3>You don't know who's worth it</h3>
+          <p>You spend 20 minutes reading a profile only to realize there's no real connection worth reaching out over.</p>
+        </div>
+        <div class="card fade-in fade-in-delay-2">
+          <span class="card-icon">📄</span>
+          <h3>Generic emails get ignored</h3>
+          <p>People can smell a template from the first line. If it doesn't feel personal, it goes straight to the archive.</p>
+        </div>
+        <div class="card fade-in fade-in-delay-3">
+          <span class="card-icon">⏱</span>
+          <h3>Writing well takes forever</h3>
+          <p>A genuinely good cold email takes 30+ minutes done right — research, drafting, and editing included.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="how-section">
+    <div class="container">
+      <div class="fade-in section-header">
+        <span class="section-label">How It Works</span>
+        <h2>From profile to sent email in under a minute.</h2>
+      </div>
+      <div class="steps-grid">
+        <div class="step fade-in fade-in-delay-1">
+          <div class="step-number">1</div>
+          <h3>See your match score</h3>
+          <p>Open any LinkedIn profile and ColdMatch instantly scores how relevant that person is to your specific goal — with reasons why.</p>
+        </div>
+        <div class="step fade-in fade-in-delay-2">
+          <div class="step-number">2</div>
+          <h3>Get a personalized email</h3>
+          <p>If the match is worth it, one click generates a tailored cold email grounded in both their background and yours.</p>
+        </div>
+        <div class="step fade-in fade-in-delay-3">
+          <div class="step-number">3</div>
+          <h3>Send it your way</h3>
+          <p>Review it in Gmail, copy it to any email client, or tweak the draft before you send. You stay in control.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta-section" id="get-started">
+    <div class="container">
+      <div class="cta-card fade-in">
+        <h2>Start for free.</h2>
+        <p class="cta-sub">Create an account and install the extension in minutes.</p>
+        <a href="/signup.html" class="btn-primary">Get started →</a>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      <p class="footer-text">
+        <span class="logo-mark">✦</span>
+        ColdMatch · Built for people who take networking seriously
+      </p>
+    </div>
+  </footer>
+
+  <script>
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.12 }
+    );
+    document.querySelectorAll('.fade-in').forEach((el) => observer.observe(el));
+  </script>
+
+</body>
+</html>
