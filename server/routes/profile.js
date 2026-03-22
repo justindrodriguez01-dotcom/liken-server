@@ -1,6 +1,7 @@
 const express     = require("express");
 const multer      = require("multer");
 const OpenAI      = require("openai");
+const pdfParse    = require("pdf-parse");
 const requireAuth = require("../middleware/auth");
 const { query }   = require("../db");
 
@@ -89,17 +90,14 @@ router.post("/parse-resume", requireAuth, upload.single("resume"), async (req, r
   }
 
   try {
-    const base64 = req.file.buffer.toString("base64");
+    const { text } = await pdfParse(req.file.buffer);
 
     const response = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         {
           role: "user",
-          content: [
-            {
-              type: "text",
-              text: `Parse this resume and extract the following fields. Return ONLY valid JSON, no markdown, no explanation.
+          content: `Parse the resume below and extract the following fields. Return ONLY valid JSON, no markdown, no explanation.
 
 {
   "name": "full name",
@@ -112,15 +110,10 @@ router.post("/parse-resume", requireAuth, upload.single("resume"), async (req, r
   "activities": "clubs, organizations, extracurriculars as a short text summary"
 }
 
-If a field is not found, use null. For work_experience, include up to 4 most recent entries.`,
-            },
-            {
-              type: "image_url",
-              image_url: {
-                url: `data:application/pdf;base64,${base64}`,
-              },
-            },
-          ],
+If a field is not found, use null. For work_experience, include up to 4 most recent entries.
+
+Resume:
+${text}`,
         },
       ],
       max_tokens: 600,
