@@ -108,7 +108,7 @@ Use the sender context to write the intro and make the email feel personal and g
         content: `Write a cold outreach email and a subject line for it.
 
 Structure — follow this exactly:
-- Greeting: "Hi [recipient first name]," on its own line
+- Greeting: The profile data begins with "Name: [full name]". Extract the first name and use it directly. Write "Hi [firstname]," on its own line. Never output a placeholder like [recipient first name].
 - Sentence 1: Sender's name and school only. Example: "My name is Justin Rodriguez and I'm a freshman at Michigan."
 - Sentence 2: Something specific about their firm or role that proves you read their profile, not just their headline. Reference what their firm actually does, a specific investment focus, a market they operate in, or a concrete detail from their career path. This is the most important sentence — it must go beyond their title and company name. Example: "I saw you went from Michigan straight into real estate PE at Vanbarton, which focuses on value-add multifamily in gateway cities, and have been there for 9 years."
 - Sentence 3: One genuine question about their path or perspective. Simple and direct. Example: "I'd love to hear what drew you to that space."
@@ -123,7 +123,12 @@ Hard rules:
 - Never ask for anything except a conversation
 - Sound like a confident college student writing a real email, not a cover letter
 - Every email must feel like it could only be sent to this exact person
-- Do NOT invent details not present in the profile data or sender context
+- When referencing the recipient's work, follow these rules:
+  - You MAY reference what their company is known for doing (e.g. "BlackGen Capital is a PE firm focused on..." if that's publicly known) — use your general knowledge about the company
+  - You MAY reference what their specific role title implies they do day-to-day (e.g. an Investment Analyst likely sources deals and builds models)
+  - If they have multiple current roles, mention the one most relevant to the sender's goal
+  - You MUST NOT invent specific personal focus areas, specializations, sectors, or tasks unless they are explicitly stated in the profile data provided
+  - If you don't have enough specific information about the company or role to say something accurate, keep sentence 2 focused on their career path or school instead
 
 Subject line rules:
 - Never use the recipient's name
@@ -137,7 +142,7 @@ Output:
 - Return ONLY valid JSON, no explanation, no markdown
 - Format: { "subject": "...", "body": "..." }
 - The body must not include a subject line
-- In the body field, use \\n for line breaks so the greeting and sign-off are on their own lines
+- In the body field, use \\n\\n between paragraphs and \\n for single line breaks (e.g. between "Best," and the sender's name) so the email displays correctly in a textarea
 ${senderSection}
 Profile Data:
 ${profileData}`,
