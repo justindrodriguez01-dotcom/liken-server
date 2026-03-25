@@ -515,7 +515,9 @@
   </div>
 
   <script>
-    const token = localStorage.getItem('cm_token');
+    const urlToken = new URLSearchParams(window.location.search).get('token');
+    if (urlToken) localStorage.setItem('cm_token', urlToken);
+    const token = urlToken || localStorage.getItem('cm_token');
     if (!token) window.location.href = '/login.html';
 
     // ── Step state ──
@@ -652,6 +654,47 @@
       const allFilled = step3Inputs.every(id => document.getElementById(id).value);
       document.getElementById('submit-btn').disabled = !allFilled;
     }
+
+    // Pre-fill all form fields from existing profile (e.g. when editing)
+    async function prefillFromProfile() {
+      try {
+        const res = await fetch('/profile', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (!res.ok) return;
+        const p = await res.json();
+
+        if (p.name)             document.getElementById('full-name').value      = p.name;
+        if (p.school)           document.getElementById('school').value          = p.school;
+        if (p.year)             document.getElementById('year').value            = p.year;
+        if (p.major)            document.getElementById('major').value           = p.major;
+        if (p.hometown)         document.getElementById('hometown').value        = p.hometown;
+        if (p.target_location)  document.getElementById('target-location').value = p.target_location;
+        if (p.target_field)     document.getElementById('target-field').value    = p.target_field;
+        if (p.target_role)      document.getElementById('target-role').value     = p.target_role;
+        if (p.timeline)         document.getElementById('timeline').value        = p.timeline;
+        if (p.background_blurb) document.getElementById('blurb').value          = p.background_blurb;
+        if (p.activities)       document.getElementById('activities').value      = p.activities;
+
+        const exp = p.work_experience || [];
+        if (exp[0]) {
+          document.getElementById('exp1-company').value = exp[0].company || '';
+          document.getElementById('exp1-role').value    = exp[0].role    || '';
+        }
+        if (exp[1]) {
+          document.getElementById('exp2-company').value = exp[1].company || '';
+          document.getElementById('exp2-role').value    = exp[1].role    || '';
+        }
+
+        if (exp.length > 0 || p.activities) {
+          document.getElementById('upload-area').style.display = 'none';
+          document.getElementById('manual-fields').classList.add('visible');
+        }
+
+        checkStep3();
+      } catch (_) {}
+    }
+    prefillFromProfile();
 
     document.getElementById('back-3').addEventListener('click', () => goToStep(2));
 
