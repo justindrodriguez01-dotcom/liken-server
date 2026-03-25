@@ -327,7 +327,7 @@
 
     document.getElementById('connect-gmail-btn').addEventListener('click', async () => {
       try {
-        const res = await fetch('/gmail/auth', {
+        const res = await fetch('/auth/gmail/auth', {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();

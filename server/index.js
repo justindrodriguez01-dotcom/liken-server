@@ -33,7 +33,7 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use("/auth",     authRoutes);
 app.use("/profile",  profileRoutes);
 app.use("/generate", generateRoutes);
-app.use("/gmail",    gmailRoutes);
+app.use("/auth/gmail", gmailRoutes);
 
 // ─── Global error handler ────────────────────────────────────────────────────
 app.use((err, _req, res, _next) => {
