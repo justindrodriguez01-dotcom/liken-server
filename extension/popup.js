@@ -34,6 +34,12 @@ const targetingStepEl = document.getElementById("targeting-step");
 
 const BACKEND = "https://liken-server-production.up.railway.app";
 
+// Convert all-caps or mixed-case names to Title Case
+function toTitleCase(str) {
+  if (!str) return "";
+  return str.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+}
+
 // Stored after stage 1 so stage 2 and regen can re-use them
 let lastStructuredData = null;
 let lastParsed = null;
@@ -57,7 +63,7 @@ function showError(msg) {
 }
 
 function displayProfile(data) {
-  nameEl.textContent = data.name || "";
+  nameEl.textContent = toTitleCase(data.name);
   show(resultEl);
 }
 
@@ -65,7 +71,7 @@ function renderContextBanner() {
   if (!contextBanner) return;
   const hasName = userProfile && userProfile.name;
   if (hasName) {
-    contextBanner.textContent = `Personalizing for ${userProfile.name}`;
+    contextBanner.textContent = `Personalizing for ${toTitleCase(userProfile.name)}`;
     contextBanner.className = "context-banner has-context";
   } else {
     contextBanner.textContent = "Add your background for better results →";
@@ -117,7 +123,7 @@ document.getElementById("login-form").addEventListener("submit", async (e) => {
 
 document.getElementById("signup-link").addEventListener("click", (e) => {
   e.preventDefault();
-  chrome.tabs.create({ url: "https://coldmatch.co/signup.html" });
+  chrome.tabs.create({ url: "https://coldmatch.co/signup" });
 });
 
 function init() {
@@ -147,12 +153,12 @@ function init() {
     // Shared handler: branch on context completeness after extraction
     async function handleProfileData(data) {
       if (!isContextComplete(userProfile)) {
-        setupNameEl.textContent = data.name || "";
+        setupNameEl.textContent = toTitleCase(data.name);
         show(setupPromptEl);
         return;
       }
       // Pre-set name so result state is ready when stage 2 runs
-      nameEl.textContent = data.name || "";
+      nameEl.textContent = toTitleCase(data.name);
 
       // Stage 1: score the match via backend
       const parts = [`Name: ${data.name}`];
@@ -166,9 +172,9 @@ function init() {
       const scoreData = await callAI(combinedText);
       console.log("SCORE:", scoreData);
       lastStructuredData = combinedText;
-      lastParsed = { name: data.name };
+      lastParsed = { name: toTitleCase(data.name) };
       const partialLoad = !data.experienceRaw && !data.educationRaw;
-      showScoreCard(scoreData, { name: data.name }, partialLoad);
+      showScoreCard(scoreData, { name: toTitleCase(data.name) }, partialLoad);
     }
 
     // Query the active tab and ask content script for profile data
@@ -258,7 +264,7 @@ document.getElementById("targeting-generate-btn").addEventListener("click", asyn
 skipBtnEl.addEventListener("click", () => show(skipStateEl));
 
 function showScoreCard(scoreData, parsed, partialLoad) {
-  scoreNameEl.textContent = parsed.name || "";
+  scoreNameEl.textContent = toTitleCase(parsed.name);
   const colorClass = scoreData.score >= 70 ? "score-green"
                    : scoreData.score >= 40 ? "score-amber"
                    : "score-red";
