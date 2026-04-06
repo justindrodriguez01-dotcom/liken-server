@@ -16,8 +16,13 @@ router.use(requireAuth);
 // ─── GET /profile ─────────────────────────────────────────────────────────────
 router.get("/", async (req, res) => {
   try {
+    // Exclude resume_pdf (binary) from the response; expose has_resume flag instead
     const result = await query(
-      "SELECT * FROM profiles WHERE user_id = $1",
+      `SELECT id, user_id, name, school, year, major, hometown, goal,
+              target_field, target_role, timeline, background_blurb,
+              work_experience, activities, gmail_tokens, attach_resume,
+              resume_filename, (resume_pdf IS NOT NULL) AS has_resume, updated_at
+       FROM profiles WHERE user_id = $1`,
       [req.userId]
     );
 
@@ -80,6 +85,22 @@ router.post("/", async (req, res) => {
   }
 });
 
+// ─── PATCH /profile ───────────────────────────────────────────────────────────
+// Partial update — currently used for toggling attach_resume.
+router.patch("/", async (req, res) => {
+  const { attach_resume } = req.body;
+  try {
+    await query(
+      "UPDATE profiles SET attach_resume = $1, updated_at = NOW() WHERE user_id = $2",
+      [!!attach_resume, req.userId]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    console.error("[profile/PATCH]", err);
+    res.status(500).json({ error: "Failed to update setting" });
+  }
+});
+
 // ─── POST /profile/parse-resume ───────────────────────────────────────────────
 router.post("/parse-resume", requireAuth, upload.single("resume"), async (req, res) => {
   if (!req.file) {
@@ -121,6 +142,14 @@ ${text}`,
 
     const raw = response.choices[0].message.content.trim();
     const parsed = JSON.parse(raw);
+
+    // Persist the raw PDF so it can be attached to Gmail drafts later
+    await query(
+      `UPDATE profiles SET resume_pdf = $1, resume_filename = $2, updated_at = NOW()
+       WHERE user_id = $3`,
+      [req.file.buffer, req.file.originalname || "resume.pdf", req.userId]
+    );
+
     res.json(parsed);
   } catch (err) {
     console.error("[profile/parse-resume]", err);

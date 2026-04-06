@@ -11,6 +11,10 @@ const oauth2Client = new google.auth.OAuth2(
   process.env.GMAIL_REDIRECT_URI
 );
 
+function toBase64Url(buf) {
+  return buf.toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
 function createMimeMessage(to, subject, body) {
   const lines = [
     `To: ${to}`,
@@ -20,11 +24,34 @@ function createMimeMessage(to, subject, body) {
     "",
     body,
   ];
-  return Buffer.from(lines.join("\r\n"))
-    .toString("base64")
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/, "");
+  return toBase64Url(Buffer.from(lines.join("\r\n")));
+}
+
+function createMimeMessageWithAttachment(to, subject, body, pdfBuffer, filename) {
+  const boundary = `cm_boundary_${Date.now()}`;
+  // Split base64 into 76-char lines as required by MIME spec
+  const pdfBase64 = pdfBuffer.toString("base64").match(/.{1,76}/g).join("\r\n");
+  const parts = [
+    `To: ${to}`,
+    `Subject: ${subject}`,
+    "MIME-Version: 1.0",
+    `Content-Type: multipart/mixed; boundary="${boundary}"`,
+    "",
+    `--${boundary}`,
+    "Content-Type: text/plain; charset=utf-8",
+    "",
+    body,
+    "",
+    `--${boundary}`,
+    "Content-Type: application/pdf",
+    "Content-Transfer-Encoding: base64",
+    `Content-Disposition: attachment; filename="${filename}"`,
+    "",
+    pdfBase64,
+    "",
+    `--${boundary}--`,
+  ];
+  return toBase64Url(Buffer.from(parts.join("\r\n")));
 }
 
 // ─── GET /gmail/auth ───────────────────────────────────────────────────────────
@@ -73,10 +100,11 @@ router.post("/draft", requireAuth, async (req, res) => {
 
   try {
     const result = await query(
-      "SELECT gmail_tokens FROM profiles WHERE user_id = $1",
+      "SELECT gmail_tokens, attach_resume, resume_pdf, resume_filename FROM profiles WHERE user_id = $1",
       [req.userId]
     );
-    const tokens = result.rows[0]?.gmail_tokens;
+    const row    = result.rows[0];
+    const tokens = row?.gmail_tokens;
     if (!tokens) {
       return res.status(401).json({ error: "gmail_not_connected" });
     }
@@ -89,8 +117,21 @@ router.post("/draft", requireAuth, async (req, res) => {
     );
     client.setCredentials(tokens);
 
-    const gmail   = google.gmail({ version: "v1", auth: client });
-    const message = createMimeMessage(to || "", subject, body);
+    const gmail = google.gmail({ version: "v1", auth: client });
+
+    let message;
+    if (row.attach_resume && row.resume_pdf) {
+      message = createMimeMessageWithAttachment(
+        to || "",
+        subject,
+        body,
+        row.resume_pdf,
+        row.resume_filename || "resume.pdf"
+      );
+    } else {
+      message = createMimeMessage(to || "", subject, body);
+    }
+
     await gmail.users.drafts.create({
       userId: "me",
       requestBody: { message: { raw: message } },

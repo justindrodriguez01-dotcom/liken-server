@@ -36,3 +36,8 @@ CREATE UNIQUE INDEX IF NOT EXISTS profiles_user_id_idx ON profiles(user_id);
 
 -- Gmail OAuth tokens (run separately if table already exists)
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS gmail_tokens JSONB;
+
+-- Resume attachment toggle and stored PDF
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS attach_resume BOOLEAN DEFAULT FALSE;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS resume_pdf BYTEA;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS resume_filename TEXT;

@@ -120,6 +120,9 @@ router.post("/email", async (req, res) => {
 
   const angleKey = targetingAngle && ANGLE_DESCRIPTIONS[targetingAngle] ? targetingAngle : "general";
   const angleDescription = ANGLE_DESCRIPTIONS[angleKey];
+  const resumeInstruction = userProfile.attach_resume
+    ? "\nRESUME NOTE: The sender is attaching their resume to this email. Naturally work in a brief mention of this — e.g. 'I've attached my resume for context' or similar — placed wherever it fits best in the email flow. Do not force it at the end."
+    : "";
 
   try {
     const openai = getOpenAI();
@@ -138,7 +141,7 @@ RECIPIENT CONTEXT:
 ${profileData}
 
 SENDER'S ANGLE FOR THIS EMAIL:
-${angleDescription}
+${angleDescription}${resumeInstruction}
 
 HOOK PRIORITY — use the strongest available hook, in this order:
 1. Same school as sender → always lead with this if true
