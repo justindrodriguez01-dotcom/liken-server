@@ -29,8 +29,13 @@ function createMimeMessage(to, subject, body) {
 
 function createMimeMessageWithAttachment(to, subject, body, pdfBuffer, filename) {
   const boundary = `cm_boundary_${Date.now()}`;
+  // Ensure the PDF is a proper Buffer regardless of how pg returned it
+  const safePdfBuffer = Buffer.isBuffer(pdfBuffer) ? pdfBuffer : Buffer.from(pdfBuffer);
   // Split base64 into 76-char lines as required by MIME spec
-  const pdfBase64 = pdfBuffer.toString("base64").match(/.{1,76}/g).join("\r\n");
+  const b64 = safePdfBuffer.toString("base64");
+  const pdfBase64 = b64.match(/.{1,76}/g)?.join("\r\n") ?? b64;
+  // Normalise body line endings so the MIME structure is consistent
+  const normalizedBody = body.replace(/\r\n/g, "\n").replace(/\n/g, "\r\n");
   const parts = [
     `To: ${to}`,
     `Subject: ${subject}`,
@@ -39,8 +44,9 @@ function createMimeMessageWithAttachment(to, subject, body, pdfBuffer, filename)
     "",
     `--${boundary}`,
     "Content-Type: text/plain; charset=utf-8",
+    "Content-Transfer-Encoding: 8bit",
     "",
-    body,
+    normalizedBody,
     "",
     `--${boundary}`,
     "Content-Type: application/pdf",
@@ -108,6 +114,13 @@ router.post("/draft", requireAuth, async (req, res) => {
     if (!tokens) {
       return res.status(401).json({ error: "gmail_not_connected" });
     }
+
+    console.log("[gmail/draft] attach_resume:", row.attach_resume,
+      "| resume_pdf:", row.resume_pdf
+        ? `Buffer(${Buffer.isBuffer(row.resume_pdf) ? row.resume_pdf.length : typeof row.resume_pdf} bytes)`
+        : "null",
+      "| resume_filename:", row.resume_filename ?? "null");
+    console.log("[gmail/draft] using attachment branch:", !!(row.attach_resume && row.resume_pdf));
 
     // Create a per-request client to avoid shared-state issues
     const client = new google.auth.OAuth2(

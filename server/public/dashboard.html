@@ -236,6 +236,8 @@
     }
     .toggle-switch input:checked + .toggle-slider { background: var(--accent); }
     .toggle-switch input:checked + .toggle-slider::before { transform: translateX(16px); }
+    .toggle-switch input:disabled + .toggle-slider { background: #e5e7eb; cursor: not-allowed; }
+    .toggle-switch input:disabled:checked + .toggle-slider { background: #93c5fd; }
   </style>
 </head>
 <body>
@@ -284,11 +286,18 @@
       <div class="card">
         <div class="card-title">Your profile</div>
         <div id="profile-details"></div>
+        <hr class="profile-divider" id="resume-upload-divider" style="display:none;">
+        <div class="profile-row" id="resume-upload-row" style="display:none;">
+          <div style="font-weight:500;font-size:13px;color:var(--text-primary);">Resume</div>
+          <div id="resume-upload-status" style="display:flex;align-items:center;gap:10px;"></div>
+        </div>
+        <input type="file" id="resume-file-input" accept=".pdf" style="display:none;">
         <hr class="profile-divider" id="resume-toggle-divider" style="display:none;">
         <div class="profile-row" id="resume-toggle-row" style="display:none;">
           <div>
             <div class="profile-label" style="font-weight:500;color:var(--text-primary);">Attach resume to emails</div>
             <div style="font-size:12px;color:var(--text-muted);margin-top:3px;">Your resume will be attached to every Gmail draft.</div>
+            <p id="resume-required-warning" style="display:none;font-size:12px;color:#d97706;margin-top:4px;">Upload a resume above to enable this feature.</p>
           </div>
           <label class="toggle-switch">
             <input type="checkbox" id="attach-resume-toggle">
@@ -359,11 +368,22 @@
           if (payload.email) document.getElementById('nav-email').textContent = payload.email;
         } catch (_) {}
 
-        // Show resume toggle only if profile exists
+        // Show resume + toggle sections only if profile exists
         if (profile) {
+          const hasResume = !!profile.has_resume;
+
+          document.getElementById('resume-upload-divider').style.display = '';
+          document.getElementById('resume-upload-row').style.display = '';
+          renderResumeStatus(hasResume);
+
           document.getElementById('resume-toggle-divider').style.display = '';
           document.getElementById('resume-toggle-row').style.display = '';
-          document.getElementById('attach-resume-toggle').checked = !!profile.attach_resume;
+          const toggleInput = document.getElementById('attach-resume-toggle');
+          toggleInput.checked = !!profile.attach_resume;
+          toggleInput.disabled = !hasResume;
+          if (profile.attach_resume && !hasResume) {
+            document.getElementById('resume-required-warning').style.display = '';
+          }
         }
 
         document.getElementById('loading-state').style.display = 'none';
@@ -373,6 +393,51 @@
         document.getElementById('loading-state').textContent = 'Failed to load. Please refresh.';
       }
     }
+
+    function renderResumeStatus(hasResume) {
+      const statusEl = document.getElementById('resume-upload-status');
+      if (!statusEl) return;
+      if (hasResume) {
+        statusEl.innerHTML =
+          '<span style="color:#059669;font-size:13px;font-weight:500;">Resume uploaded ✓</span>' +
+          '<a href="#" class="link-subtle" id="replace-resume-link" style="font-size:12px;">Replace</a>';
+        document.getElementById('replace-resume-link').addEventListener('click', (e) => {
+          e.preventDefault();
+          document.getElementById('resume-file-input').click();
+        });
+      } else {
+        statusEl.innerHTML =
+          '<button class="btn-ghost" id="upload-resume-btn" style="font-size:12px;padding:5px 12px;">Upload resume</button>';
+        document.getElementById('upload-resume-btn').addEventListener('click', () => {
+          document.getElementById('resume-file-input').click();
+        });
+      }
+    }
+
+    document.getElementById('resume-file-input').addEventListener('change', async function () {
+      const file = this.files[0];
+      if (!file) return;
+      const statusEl = document.getElementById('resume-upload-status');
+      statusEl.innerHTML = '<span style="font-size:13px;color:var(--text-muted);">Uploading…</span>';
+      const formData = new FormData();
+      formData.append('resume', file);
+      try {
+        const res = await fetch('/profile/parse-resume', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+          body: formData,
+        });
+        if (!res.ok) throw new Error('Upload failed');
+        renderResumeStatus(true);
+        const tog = document.getElementById('attach-resume-toggle');
+        tog.disabled = false;
+        document.getElementById('resume-required-warning').style.display = 'none';
+      } catch (_) {
+        statusEl.innerHTML = '<span style="font-size:13px;color:#ef4444;">Upload failed. Try again.</span>';
+        setTimeout(() => renderResumeStatus(false), 2000);
+      }
+      this.value = '';
+    });
 
     loadDashboard();
 
@@ -387,7 +452,6 @@
           body: JSON.stringify({ attach_resume: e.target.checked }),
         });
       } catch (_) {
-        // Revert toggle on failure
         e.target.checked = !e.target.checked;
       }
     });
