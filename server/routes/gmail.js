@@ -140,6 +140,19 @@ router.post("/draft", requireAuth, async (req, res) => {
     res.json({ success: true, message: "Draft saved to Gmail" });
   } catch (err) {
     console.error("[gmail/draft]", err);
+
+    // Expired or revoked token — clear it so the dashboard shows disconnected
+    const isInvalidGrant =
+      err?.message?.includes("invalid_grant") ||
+      err?.response?.data?.error === "invalid_grant";
+    if (isInvalidGrant) {
+      await query(
+        "UPDATE profiles SET gmail_tokens = NULL WHERE user_id = $1",
+        [req.userId]
+      ).catch(() => {}); // best-effort
+      return res.status(401).json({ error: "gmail_reauth_required" });
+    }
+
     res.status(500).json({ error: "Failed to create draft" });
   }
 });

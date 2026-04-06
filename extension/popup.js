@@ -319,9 +319,10 @@ draftBtn.addEventListener("click", () => {
       const data = await res.json();
 
       if (!res.ok) {
-        draftConfirmEl.textContent = data.error === "gmail_not_connected"
-          ? "Connect Gmail at coldmatch.co/dashboard"
-          : "Failed to save draft. Try again.";
+        draftConfirmEl.textContent =
+          data.error === "gmail_not_connected" || data.error === "gmail_reauth_required"
+            ? "Gmail disconnected — reconnect at coldmatch.co/dashboard"
+            : "Failed to save draft. Try again.";
         draftConfirmEl.className = "draft-confirm draft-error";
       } else {
         draftConfirmEl.textContent = "✓ Draft saved in Gmail";
