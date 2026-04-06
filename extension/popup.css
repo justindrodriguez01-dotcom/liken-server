@@ -698,3 +698,21 @@ body {
 .targeting-back-btn:hover {
   color: #1d4ed8;
 }
+
+.targeting-note {
+  width: 100%;
+  padding: 8px 12px;
+  background: #ffffff;
+  border: 1px solid #e5e4e2;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #111111;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.targeting-note:focus {
+  border-color: #2563EB;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
+}
+.targeting-note::placeholder { color: #d1d5db; }

@@ -28,12 +28,9 @@ function buildSenderBlock(u) {
 }
 
 const ANGLE_DESCRIPTIONS = {
-  career_path:        "sender wants to understand how recipient built their career and what decisions led them here",
-  firm_industry:      "sender is specifically curious about what the recipient's firm does and how they think about their work",
-  internship_advice:  "sender wants honest advice on how to break into this field and what to focus on",
-  referral:           "sender is respectfully seeing if recipient knows of opportunities or could make an introduction",
-  day_to_day:         "sender wants to understand what the work actually looks like day to day beyond the job title",
-  general:            "sender wants to start a genuine professional relationship with no specific immediate ask",
+  breaking_in:       "the sender wants to understand how the recipient broke into their field and what advice they'd give someone trying to do the same",
+  firm_strategy:     "the sender is curious about the recipient's firm specifically — its deals, investment strategy, focus areas, or how they think about the work",
+  career_transition: "the sender is curious about a specific move the recipient made — between roles, firms, or fields — and what drove that decision",
 };
 
 // ─── POST /generate/score ──────────────────────────────────────────────────────
@@ -112,16 +109,21 @@ Good: "Went IB → PE at a mid-market fund — exactly the path sender wants to 
 // Body: { profileData: string, userProfile: object, targetingAngle: string }
 // Returns: { subject, body }
 router.post("/email", async (req, res) => {
-  const { profileData, userProfile, targetingAngle } = req.body;
+  const { profileData, userProfile, targetingAngle, customNote } = req.body;
 
   if (!profileData || !userProfile) {
     return res.status(400).json({ error: "profileData and userProfile are required" });
   }
 
-  const angleKey = targetingAngle && ANGLE_DESCRIPTIONS[targetingAngle] ? targetingAngle : "general";
+  const angleKey = targetingAngle && ANGLE_DESCRIPTIONS[targetingAngle] ? targetingAngle : "breaking_in";
   const angleDescription = ANGLE_DESCRIPTIONS[angleKey];
+
+  const customNoteInstruction = customNote
+    ? `\nCUSTOM CONTEXT FROM SENDER: "${customNote}" — weave this in naturally where it fits. Do not let it override the angle above.`
+    : "";
+
   const resumeInstruction = userProfile.attach_resume
-    ? "\nRESUME NOTE: The sender is attaching their resume to this email. Naturally work in a brief mention of this — e.g. 'I've attached my resume for context' or similar — placed wherever it fits best in the email flow. Do not force it at the end."
+    ? "\nRESUME NOTE: The sender is attaching their resume to this email. Naturally work in a brief mention of this — e.g. 'I've attached my resume for context' — placed wherever it fits best. Do not force it at the end."
     : "";
 
   try {
@@ -132,7 +134,7 @@ router.post("/email", async (req, res) => {
       temperature: 0.8,
       messages: [{
         role: "user",
-        content: `You are writing a cold outreach email on behalf of a college student. This email must sound like a real human wrote it — not AI, not a template, not a cover letter.
+        content: `You are writing a cold outreach email on behalf of a college student. It must sound like a real human wrote it — not AI, not a template.
 
 SENDER CONTEXT:
 ${buildSenderBlock(userProfile)}
@@ -140,38 +142,50 @@ ${buildSenderBlock(userProfile)}
 RECIPIENT CONTEXT:
 ${profileData}
 
-SENDER'S ANGLE FOR THIS EMAIL:
-${angleDescription}${resumeInstruction}
+ANGLE — this drives the email's focus and the specific ask:
+${angleDescription}${customNoteInstruction}${resumeInstruction}
 
-HOOK PRIORITY — use the strongest available hook, in this order:
-1. Same school as sender → always lead with this if true
-2. Recipient's firm is in or near sender's hometown → mention the geographic connection
-3. Recipient made a notable career transition or has an unusual path → reference that specifically
-4. Specific knowledge of what their firm does → show you did research
-5. Their career progression over time → reference tenure or growth
-6. Nothing specific → keep email very short and purely curiosity-driven, do not invent details
+━━━ STEP 1: DETECT SHARED BACKGROUND (do this before writing anything) ━━━
 
-EMAIL RULES:
-- Greeting: Hi [first name],
-- Introduce yourself: name, school, year (1 sentence max)
-- One specific observation anchored in real profile data (NOT from their About section — from their actual career history, school, or firm). State the fact. Do not editorialize or compliment.
-- Express genuine curiosity shaped by the targeting angle
-- Low-pressure ask: reference being busy, 15 min call
-- Sign off: Best, then name on separate line
-- Total length: under 120 words
-- Sound like a confident college student writing a real email, not a cover letter
-- NEVER use: "which must involve", "which is fascinating", "truly impressive", "really resonated", "your journey", "I came across your profile", "was impressed by", "that kind of dedication", "I hope this finds you well", "would greatly appreciate", "any insights you could share", "thank you for considering", "I look forward to", "extensive experience", "built a strong career"
-- NEVER summarize their About section back to them
-- NEVER compliment a skill or trait directly
-- NEVER invent details not in the profile data
-- NEVER mention internships, jobs, or recruiting directly unless the angle is internship_advice or referral
-- If nothing specific and accurate can be said, write a very short generic curiosity email rather than inventing details
+SHARED UNIVERSITY — mandatory highest-priority hook:
+Compare sender's school against every institution in the recipient's profile. If they match (same university, any campus), this is the primary hook and must appear in TWO places:
+  1. Subject line must include the school name — e.g. "Fellow Michigan Alum", "Michigan → Goldman", "Dartmouth Student Quick Question". The name must literally appear.
+  2. Email opening must lead with the shared connection as the natural reason for reaching out — e.g. "I noticed you're a fellow Michigan alum", "As a fellow Wolverine", "I saw you went to Michigan — I'm a current junior there." It should feel like the reason they're writing, not a throwaway line.
+
+OTHER SHARED BACKGROUND:
+Check whether sender and recipient share clubs, student organizations, sports teams, Greek life, or hometown. If found:
+  • Weave in after the university mention if one exists, or
+  • Use as the opening hook if no shared university is present.
+
+━━━ STEP 2: WRITE THE EMAIL ━━━
+
+Hi [first name],
+
+[Opening — 1 sentence]
+Use the strongest hook from Step 1. If no shared background exists, open with one specific verifiable fact from their actual career history, firm, or education — stated plainly, no compliments, no "I came across your profile."
+
+[Body — 2–3 sentences]
+Genuine curiosity driven by the angle. Specific to what this person actually did — their real roles, firm, or career decisions. If a customNote was provided, weave it in here naturally only if it fits. Do not force it.
+
+[Ask — 1 sentence]
+Low-pressure. Acknowledge they're busy. Ask for 15 minutes.
+
+Best,
+[Sender first name]
+
+━━━ RULES ━━━
+- Under 120 words total
+- Never invent details not in the profile
+- NEVER use: "your journey", "truly impressive", "I hope this finds you well", "would greatly appreciate", "any insights you could share", "thank you for considering", "I look forward to", "extensive experience", "really resonated", "was impressed by", "which is fascinating", "that kind of dedication", "built a strong career", "I came across your profile"
+- Never summarize their About section
+- Never compliment a skill or trait directly
+- Never force a shared background connection that doesn't actually exist in the data
 
 Return ONLY this JSON:
 {
-  "subject": "under 8 words, specific, no recipient name, curiosity-driven",
-  "body": "the full email body — use \\n\\n between paragraphs and \\n for single line breaks (e.g. between Best, and sender name)",
-  "hook": "one line describing the specific hook used in this email — name the actual fact from their profile that anchors the email. Examples: 'Opens with their Goldman → Blackstone transition', 'Leads with shared Michigan background', 'References their 8 years at Carlyle before founding own fund', 'Built around their Houston base matching sender hometown'. Be specific to this email — never write 'Based on their experience' or anything generic."
+  "subject": "subject line — if shared university found, must include school name; otherwise ≤8 words, specific, no recipient name",
+  "body": "full email — \\n\\n between paragraphs, \\n between Best, and sender name",
+  "hook": "one specific line: e.g. 'Shared Michigan — school in subject + opening', 'No shared school — opens with their Carlyle→Blackstone move', 'AFA connection woven into body per custom note'"
 }`,
       }],
     });

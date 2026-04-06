@@ -45,8 +45,9 @@ let lastStructuredData = null;
 let lastParsed = null;
 // User profile fetched from backend
 let userProfile = null;
-// Selected angle from targeting step
-let targetingAngle = "career_path";
+// Selected angle and optional custom note from targeting step
+let targetingAngle = "breaking_in";
+let lastCustomNote = "";
 
 function show(el) {
   [loadingEl, errorEl, setupPromptEl, scoreCardEl, targetingStepEl, skipStateEl, resultEl, notLoggedInEl].forEach(e => e.classList.add("hidden"));
@@ -248,10 +249,11 @@ document.getElementById("targeting-back-btn").addEventListener("click", () => {
 // Stage 2c: "Generate email →" on targeting step → generate
 document.getElementById("targeting-generate-btn").addEventListener("click", async () => {
   targetingAngle = document.getElementById("targeting-angle").value;
+  lastCustomNote = document.getElementById("targeting-custom-note").value.trim();
   show(resultEl);
   renderContextBanner();
   showAILoading(true);
-  const generated = await generateMessage(lastStructuredData, targetingAngle);
+  const generated = await generateMessage(lastStructuredData, targetingAngle, lastCustomNote);
   console.log("MESSAGE:", generated);
   subjectInput.value = generated.subject;
   messageBody.value  = generated.body;
@@ -352,7 +354,7 @@ gmailBtn.addEventListener("click", () => {
 regenBtn.addEventListener("click", async () => {
   if (!lastStructuredData) return;
   showAILoading(true);
-  const generated = await generateMessage(lastStructuredData, targetingAngle);
+  const generated = await generateMessage(lastStructuredData, targetingAngle, lastCustomNote);
   console.log("REGENERATED MESSAGE:", generated);
   subjectInput.value = generated.subject;
   messageBody.value  = generated.body;
@@ -420,8 +422,8 @@ function buildToneInstruction(goal) {
   }
 }
 
-async function generateMessage(structuredData, angle) {
-  const requestBody = { profileData: structuredData, userProfile, targetingAngle: angle };
+async function generateMessage(structuredData, angle, customNote = "") {
+  const requestBody = { profileData: structuredData, userProfile, targetingAngle: angle, customNote };
   console.log('[ColdMatch] Sending to email:', requestBody);
   const response = await fetch(`${BACKEND}/generate/email`, {
     method: "POST",
