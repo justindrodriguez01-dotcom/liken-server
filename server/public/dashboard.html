@@ -314,16 +314,18 @@
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 12px;
-      overflow: hidden;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
     }
     .tracker-table {
       width: 100%;
+      min-width: 720px;
       border-collapse: collapse;
       font-size: 13px;
     }
     .tracker-table th {
       background: #f9f9f8;
-      padding: 10px 14px;
+      padding: 10px 12px;
       text-align: left;
       font-size: 11px;
       font-weight: 600;
@@ -334,13 +336,30 @@
       white-space: nowrap;
     }
     .tracker-table td {
-      padding: 11px 14px;
+      padding: 10px 12px;
       border-bottom: 1px solid #f3f4f6;
       vertical-align: middle;
       color: var(--text-primary);
+      max-width: 0; /* enables text-overflow on table cells */
     }
     .tracker-table tr:last-child td { border-bottom: none; }
     .tracker-table tr:hover td { background: #fafaf9; }
+    /* Column width hints */
+    .tracker-table col.col-name    { width: 14%; }
+    .tracker-table col.col-firm    { width: 16%; }
+    .tracker-table col.col-role    { width: 14%; }
+    .tracker-table col.col-date    { width: 11%; }
+    .tracker-table col.col-stage   { width: 11%; }
+    .tracker-table col.col-reply   { width: 12%; }
+    .tracker-table col.col-followup{ width: 9%; }
+    .tracker-table col.col-notes   { width: 9%; }
+    .tracker-table col.col-actions { width: 8%; }
+    /* Truncate overflow cells */
+    .cell-truncate {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
 
     .tracker-empty {
       text-align: center;
@@ -958,37 +977,35 @@
       }
       container.innerHTML = `
         <table class="tracker-table">
+          <colgroup>
+            <col class="col-name"><col class="col-firm"><col class="col-role">
+            <col class="col-date"><col class="col-stage"><col class="col-reply">
+            <col class="col-followup"><col class="col-notes"><col class="col-actions">
+          </colgroup>
           <thead>
             <tr>
-              <th>Name</th>
-              <th>Firm</th>
-              <th>Role</th>
-              <th>Date Added</th>
-              <th>Stage</th>
-              <th>Reply</th>
-              <th>Follow-up</th>
-              <th>Notes</th>
-              <th></th>
+              <th>Name</th><th>Firm</th><th>Role</th><th>Date Added</th>
+              <th>Stage</th><th>Reply</th><th>Follow-up</th><th>Notes</th><th></th>
             </tr>
           </thead>
           <tbody>
             ${outreachData.map(e => `
               <tr>
-                <td style="font-weight:600;white-space:nowrap;">${e.name}</td>
-                <td>${e.firm || '—'}</td>
-                <td>${e.role || '—'}</td>
-                <td style="white-space:nowrap;">
-                  ${formatDate(e.date_added)}
-                  <br><span class="badge ${e.source === 'extension' ? 'badge-source-ext' : 'badge-source-manual'}" style="margin-top:3px;">${e.source === 'extension' ? 'Draft Saved' : 'Added Manually'}</span>
+                <td class="cell-truncate" style="font-weight:600;" title="${escHtml(e.name)}">${e.name}</td>
+                <td class="cell-truncate" title="${escHtml(e.firm)}">${e.firm || '—'}</td>
+                <td class="cell-truncate" title="${escHtml(e.role)}">${e.role || '—'}</td>
+                <td style="white-space:nowrap;font-size:12px;">
+                  ${formatDate(e.date_added)}<br>
+                  <span class="badge ${e.source === 'extension' ? 'badge-source-ext' : 'badge-source-manual'}" style="margin-top:3px;">${e.source === 'extension' ? 'Draft Saved' : 'Manual'}</span>
                 </td>
                 <td>
                   <select class="stage-select stage-select-${stageBadgeClass(e.stage)}" data-id="${e.id}" onchange="updateStage('${e.id}', this)">
                     ${['Drafted','Contacted','Replied','Meeting Scheduled','Offer'].map(s => `<option value="${s}"${s===e.stage?' selected':''}>${s}</option>`).join('')}
                   </select>
                 </td>
-                <td><span class="badge ${replyBadgeClass(e.reply_status)}">${e.reply_status}</span></td>
-                <td style="white-space:nowrap;">${formatDate(e.follow_up_date)}</td>
-                <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escHtml(e.notes)}">${e.notes || '—'}</td>
+                <td><span class="badge ${replyBadgeClass(e.reply_status)}" style="white-space:nowrap;">${e.reply_status}</span></td>
+                <td style="white-space:nowrap;font-size:12px;">${formatDate(e.follow_up_date)}</td>
+                <td class="cell-truncate" title="${escHtml(e.notes)}">${e.notes || '—'}</td>
                 <td style="white-space:nowrap;">
                   <button class="action-link" onclick="openEditModal('${e.id}')">Edit</button>
                   <button class="action-link delete" onclick="deleteEntry('${e.id}')">Delete</button>

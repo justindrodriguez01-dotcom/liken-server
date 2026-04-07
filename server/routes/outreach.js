@@ -144,22 +144,29 @@ Return ONLY this JSON:
 router.post("/check-replies", async (req, res) => {
   console.log("[check-replies] hit — userId:", req.userId);
   try {
-    const [profileRes, entriesRes] = await Promise.all([
+    const [profileRes, allEntriesRes, entriesRes] = await Promise.all([
       query("SELECT gmail_tokens FROM profiles WHERE user_id = $1", [req.userId]),
+      // Log ALL rows (including null thread IDs) so we can see what's stored
+      query("SELECT id, name, gmail_thread_id, reply_status FROM outreach WHERE user_id = $1", [req.userId]),
       query(
         "SELECT id, name, gmail_thread_id FROM outreach WHERE user_id = $1 AND gmail_thread_id IS NOT NULL AND reply_status != 'Replied'",
         [req.userId]
       ),
     ]);
 
+    console.log("[check-replies] ALL outreach rows:", allEntriesRes.rows.map(
+      e => `${e.name} | threadId=${e.gmail_thread_id ?? "NULL"} | status=${e.reply_status}`
+    ));
+
     const tokens = profileRes.rows[0]?.gmail_tokens;
     if (!tokens) {
       console.log("[check-replies] no gmail_tokens found — aborting");
-      return res.json({ updated: 0 });
+      return res.json({ updated: 0, error: "gmail_not_connected" });
     }
+    console.log("[check-replies] tokens present, scopes:", profileRes.rows[0]?.gmail_tokens?.scope || "unknown");
 
     const entries = entriesRes.rows;
-    console.log("[check-replies] entries to check:", entries.map(e => `${e.name} (${e.gmail_thread_id})`));
+    console.log("[check-replies] eligible entries (non-null threadId, not yet Replied):", entries.map(e => `${e.name} (${e.gmail_thread_id})`));
     if (entries.length === 0) return res.json({ updated: 0 });
 
     const client = new google.auth.OAuth2(
@@ -183,13 +190,13 @@ router.post("/check-replies", async (req, res) => {
         const messages = thread.data.messages || [];
         console.log(
           "[check-replies] thread", entry.gmail_thread_id,
+          "| snippet:", thread.data.snippet?.slice(0, 60),
           "| messages:", messages.length,
-          "| labels:", messages.map(m => (m.labelIds || []).join(","))
+          "| per-message labels:", messages.map(m => `[${(m.labelIds || []).join(",")}]`)
         );
 
-        // Reply detected: thread has >1 message and at least one message
-        // landed in INBOX (i.e. was received, not sent/drafted by us).
-        // Also treat a single INBOX message as a reply (draft was sent & reply came in same thread).
+        // Reply detected: any message in the thread has INBOX label
+        // (means it was received, not just drafted/sent by us)
         const hasReply = messages.some(
           (m) => (m.labelIds || []).includes("INBOX")
         );
@@ -204,7 +211,11 @@ router.post("/check-replies", async (req, res) => {
           console.log("[check-replies] marked Replied:", entry.name);
         }
       } catch (err) {
-        console.error("[check-replies] thread error for", entry.gmail_thread_id, ":", err.message);
+        console.error(
+          "[check-replies] thread error for", entry.gmail_thread_id, ":",
+          err.message,
+          "| Google API error:", JSON.stringify(err.response?.data ?? null)
+        );
       }
     }));
 

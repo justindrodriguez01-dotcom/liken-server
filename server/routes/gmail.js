@@ -153,8 +153,9 @@ router.post("/draft", requireAuth, async (req, res) => {
       requestBody: { message: { raw: message } },
     });
 
+    console.log("[gmail/draft] draftRes.data (raw):", JSON.stringify(draftRes.data));
     const threadId = draftRes.data?.message?.threadId || null;
-    console.log("[gmail/draft] draftRes threadId:", threadId, "| contactName:", contactName || "none");
+    console.log("[gmail/draft] extracted threadId:", threadId, "| contactName:", contactName || "none");
 
     // Auto-log to outreach tracker (best-effort)
     if (contactName) {
