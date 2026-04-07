@@ -99,10 +99,12 @@
     /* ── Page layout ── */
     .page {
       flex: 1;
-      padding: 40px 24px 80px;
-      max-width: 900px;
-      margin: 0 auto;
+      padding: 40px 32px 80px;
       width: 100%;
+    }
+    .home-inner {
+      max-width: 860px;
+      margin: 0 auto;
     }
     .tab-panel { display: none; }
     .tab-panel.active { display: block; }
@@ -339,7 +341,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 20px;
+      margin-bottom: 24px;
     }
     .tracker-header h2 {
       font-size: 22px;
@@ -353,6 +355,7 @@
       border: 1px solid var(--border);
       border-radius: 12px;
       overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
     }
     .tracker-table {
       width: 100%;
@@ -360,43 +363,69 @@
       border-collapse: collapse;
       font-size: 13px;
     }
-    .tracker-table colgroup col { }
-    .tracker-table col.col-name    { width: 15%; }
-    .tracker-table col.col-firm    { width: 17%; }
-    .tracker-table col.col-role    { width: 13%; }
-    .tracker-table col.col-date    { width: 11%; }
+    .tracker-table col.col-name    { width: 17%; }
+    .tracker-table col.col-firm    { width: 18%; }
+    .tracker-table col.col-role    { width: 11%; }
+    .tracker-table col.col-date    { width: 13%; }
     .tracker-table col.col-stage   { width: 13%; }
-    .tracker-table col.col-followup{ width: 11%; }
-    .tracker-table col.col-notes   { width: 14%; }
+    .tracker-table col.col-followup{ width: 12%; }
+    .tracker-table col.col-notes   { width: 10%; }
     .tracker-table col.col-actions { width: 6%; }
 
     .tracker-table th {
       background: #f9f9f8;
-      padding: 11px 16px;
+      padding: 12px 16px;
       text-align: left;
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.07em;
+      font-size: 10.5px;
+      font-weight: 600;
+      letter-spacing: 0.09em;
       text-transform: uppercase;
       color: var(--text-muted);
       border-bottom: 1px solid var(--border);
       white-space: nowrap;
+      user-select: none;
     }
+    .tracker-table th:last-child { text-align: right; }
     .tracker-table td {
-      padding: 13px 16px;
-      border-bottom: 1px solid #f3f4f6;
+      padding: 14px 16px;
+      border-bottom: 1px solid #f2f2f0;
       vertical-align: middle;
       color: var(--text-primary);
       overflow: hidden;
     }
     .tracker-table tr:last-child td { border-bottom: none; }
-    .tracker-table tbody tr:hover td { background: #fafaf9; }
+    .tracker-table tbody tr { transition: background 0.1s; }
+    .tracker-table tbody tr:hover td { background: #f5f4f2; }
+    .tracker-table td:last-child {
+      text-align: right;
+      overflow: visible;
+    }
 
     .cell-text {
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
       display: block;
+    }
+    .cell-name {
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: block;
+    }
+    .cell-date-main {
+      font-size: 13px;
+      white-space: nowrap;
+      display: block;
+    }
+    .cell-date-sub {
+      display: block;
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 2px;
+      font-weight: 400;
+      letter-spacing: 0;
     }
 
     /* Inline editable cells */
@@ -435,16 +464,6 @@
       line-height: 1.6;
     }
 
-    /* Source badge */
-    .source-label {
-      display: block;
-      font-size: 10px;
-      font-weight: 500;
-      color: var(--text-muted);
-      margin-top: 3px;
-      letter-spacing: 0.01em;
-    }
-
     /* Stage badge colors: Drafted=gray, Contacted=blue, Replied=green, Meeting=purple, Offer=gold */
     .badge-drafted    { background: #f3f4f6; color: #374151; }
     .badge-contacted  { background: #dbeafe; color: #1e40af; }
@@ -464,8 +483,9 @@
       padding: 0;
       color: #ef4444;
       text-decoration: none;
+      white-space: nowrap;
     }
-    .action-link:hover { opacity: 0.75; }
+    .action-link:hover { opacity: 0.7; }
 
     /* ── Modals ── */
     .modal-overlay {
@@ -576,11 +596,11 @@
       margin-left: 8px;
     }
 
-    /* Inline stage dropdown */
+    /* Inline stage dropdown — pill-shaped, no browser chrome */
     .stage-select {
       border: none;
       border-radius: 999px;
-      padding: 3px 10px 3px 8px;
+      padding: 4px 12px;
       font-family: inherit;
       font-size: 11px;
       font-weight: 600;
@@ -588,13 +608,26 @@
       appearance: none;
       -webkit-appearance: none;
       outline: none;
-      max-width: 100%;
+      white-space: nowrap;
+      letter-spacing: 0.01em;
+      transition: opacity 0.15s;
     }
+    .stage-select:hover { opacity: 0.85; }
     .stage-select-badge-drafted   { background: #f3f4f6; color: #374151; }
     .stage-select-badge-contacted { background: #dbeafe; color: #1e40af; }
     .stage-select-badge-replied   { background: #d1fae5; color: #065f46; }
     .stage-select-badge-meeting   { background: #ede9fe; color: #5b21b6; }
     .stage-select-badge-offer     { background: #fef3c7; color: #92400e; }
+
+    /* Source label (date column sub-text) */
+    .source-label {
+      display: block;
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-top: 2px;
+      letter-spacing: 0;
+    }
   </style>
 </head>
 <body>
@@ -619,6 +652,7 @@
 
       <!-- ── HOME TAB ── -->
       <div class="tab-panel active" id="tab-home">
+      <div class="home-inner">
 
         <div class="greeting">
           <h1 id="welcome-heading">Welcome to ColdMatch.</h1>
@@ -687,6 +721,7 @@
           </div>
           <a href="/onboarding" class="link-subtle" style="margin-top:16px;display:inline-block;">Edit profile</a>
         </div>
+      </div><!-- /home-inner -->
       </div><!-- /tab-home -->
 
       <!-- ── TRACKER TAB ── -->
@@ -1088,18 +1123,18 @@
           <tbody>
             ${outreachData.map(e => `
               <tr>
-                <td style="font-weight:600;">
-                  <span class="cell-text" title="${escHtml(e.name)}">${e.name}</span>
+                <td>
+                  <span class="cell-name" title="${escHtml(e.name)}">${e.name}</span>
                 </td>
                 <td class="inline-edit-cell" onclick="startInlineEdit(this,'${e.id}','firm','text')" title="Click to edit">
                   <span class="cell-text" title="${escHtml(e.firm)}">${e.firm || '<span style=\'color:var(--text-muted)\'>—</span>'}</span>
                 </td>
                 <td>
-                  <span class="cell-text" style="color:var(--text-secondary);" title="${escHtml(e.role)}">${e.role || '—'}</span>
+                  <span class="cell-text" style="color:var(--text-secondary);" title="${escHtml(e.role)}">${e.role || '<span style=\'color:var(--text-muted)\'>—</span>'}</span>
                 </td>
                 <td>
-                  <span style="font-size:13px;">${formatDate(e.date_added)}</span>
-                  <span class="source-label">${e.source === 'extension' ? 'Draft Saved' : 'Manual'}</span>
+                  <span class="cell-date-main">${formatDate(e.date_added)}</span>
+                  <span class="cell-date-sub">${e.source === 'extension' ? 'Draft Saved' : 'Manual'}</span>
                 </td>
                 <td>
                   <select class="stage-select stage-select-${stageBadgeClass(e.stage)}" onchange="updateStage('${e.id}', this)">
