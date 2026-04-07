@@ -65,7 +65,10 @@ function createMimeMessageWithAttachment(to, subject, body, pdfBuffer, filename)
 router.get("/auth", requireAuth, (req, res) => {
   const authUrl = oauth2Client.generateAuthUrl({
     access_type: "offline",
-    scope: ["https://www.googleapis.com/auth/gmail.compose"],
+    scope: [
+      "https://www.googleapis.com/auth/gmail.compose",
+      "https://www.googleapis.com/auth/gmail.readonly",
+    ],
     state: req.userId,
   });
   res.json({ authUrl });
@@ -151,6 +154,7 @@ router.post("/draft", requireAuth, async (req, res) => {
     });
 
     const threadId = draftRes.data?.message?.threadId || null;
+    console.log("[gmail/draft] draftRes threadId:", threadId, "| contactName:", contactName || "none");
 
     // Auto-log to outreach tracker (best-effort)
     if (contactName) {
