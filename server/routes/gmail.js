@@ -69,9 +69,31 @@ router.get("/auth", requireAuth, (req, res) => {
       "https://www.googleapis.com/auth/gmail.compose",
       "https://www.googleapis.com/auth/gmail.readonly",
     ],
+    // Always show consent screen so existing tokens pick up the new readonly scope
+    prompt: "consent",
     state: req.userId,
   });
   res.json({ authUrl });
+});
+
+// ─── GET /gmail/status ─────────────────────────────────────────────────────────
+// Returns whether Gmail is connected and whether the stored token has readonly scope.
+router.get("/status", requireAuth, async (req, res) => {
+  try {
+    const result = await query(
+      "SELECT gmail_tokens FROM profiles WHERE user_id = $1",
+      [req.userId]
+    );
+    const tokens      = result.rows[0]?.gmail_tokens;
+    const connected   = !!tokens;
+    const scope       = tokens?.scope || "";
+    const hasReadonly = scope.includes("gmail.readonly");
+    console.log("[gmail/status] connected:", connected, "| scope:", scope || "none");
+    res.json({ connected, hasReadonly, scope });
+  } catch (err) {
+    console.error("[gmail/status]", err);
+    res.status(500).json({ error: "Failed to check Gmail status" });
+  }
 });
 
 // ─── GET /gmail/callback ───────────────────────────────────────────────────────

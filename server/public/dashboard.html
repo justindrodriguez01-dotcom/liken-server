@@ -247,6 +247,44 @@
     .toggle-switch input:disabled + .toggle-slider { background: #e5e7eb; cursor: not-allowed; }
     .toggle-switch input:disabled:checked + .toggle-slider { background: #93c5fd; }
 
+    /* ── Scope upgrade banner ── */
+    .scope-banner {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-radius: 10px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+    }
+    .scope-banner.visible { display: flex; }
+    .scope-banner-text {
+      font-size: 13px;
+      color: #92400e;
+      font-weight: 500;
+    }
+    .scope-banner-text span {
+      font-weight: 400;
+      color: #78350f;
+    }
+    .btn-scope-reconnect {
+      flex-shrink: 0;
+      padding: 6px 14px;
+      background: #d97706;
+      color: #ffffff;
+      border: none;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s;
+    }
+    .btn-scope-reconnect:hover { background: #b45309; }
+
     /* ── Follow-up reminders section ── */
     .reminders-section {
       background: #fffbeb;
@@ -577,6 +615,15 @@
           </ul>
         </div>
 
+        <!-- Scope upgrade banner (shown when gmail.readonly not granted) -->
+        <div class="scope-banner" id="scope-banner-home">
+          <div class="scope-banner-text">
+            Reconnect Gmail to enable reply tracking
+            <br><span>Your current Gmail connection doesn't have permission to check for replies.</span>
+          </div>
+          <button class="btn-scope-reconnect" onclick="startGmailOAuth()">Reconnect Gmail</button>
+        </div>
+
         <div class="card" id="gmail-card">
           <div class="card-title">Connect Gmail</div>
           <div class="card-sub">Save drafts directly to Gmail from the ColdMatch extension.</div>
@@ -616,6 +663,15 @@
 
       <!-- ── TRACKER TAB ── -->
       <div class="tab-panel" id="tab-tracker">
+        <!-- Scope upgrade banner (tracker tab) -->
+        <div class="scope-banner" id="scope-banner-tracker">
+          <div class="scope-banner-text">
+            Reconnect Gmail to enable reply tracking
+            <br><span>Your current Gmail connection doesn't have permission to check for replies.</span>
+          </div>
+          <button class="btn-scope-reconnect" onclick="startGmailOAuth()">Reconnect Gmail</button>
+        </div>
+
         <div class="tracker-header">
           <h2>Outreach Tracker</h2>
           <div class="tracker-actions">
@@ -914,6 +970,23 @@
 
     document.getElementById('connect-gmail-btn').addEventListener('click', startGmailOAuth);
     document.getElementById('reconnect-gmail-btn').addEventListener('click', startGmailOAuth);
+
+    // Check Gmail scope — show upgrade banner if gmail.readonly is missing
+    async function checkGmailScope() {
+      try {
+        const res = await fetch('/auth/gmail/status', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        // Only show banner if connected but missing readonly
+        if (data.connected && !data.hasReadonly) {
+          document.getElementById('scope-banner-home').classList.add('visible');
+          document.getElementById('scope-banner-tracker').classList.add('visible');
+        }
+      } catch (_) {}
+    }
+    checkGmailScope();
 
     // ── Follow-up reminders ──
     let outreachData = [];
