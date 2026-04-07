@@ -389,13 +389,53 @@ draftBtn.addEventListener("click", () => {
   });
 });
 
-// Open Gmail compose window with pre-filled fields
+// Open in Gmail: create draft via backend, then open it directly
 gmailBtn.addEventListener("click", () => {
   const to      = emailInput.value.trim();
   const subject = subjectInput.value.trim();
   const body    = messageBody.value.trim();
-  const url     = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(to)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-  chrome.tabs.create({ url });
+
+  gmailBtn.disabled = true;
+  gmailBtn.textContent = "Opening…";
+  draftConfirmEl.classList.add("hidden");
+
+  chrome.storage.local.get(["cm_token"], async ({ cm_token: token }) => {
+    try {
+      const res = await fetch(`${BACKEND}/auth/gmail/draft`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + token,
+        },
+        body: JSON.stringify({
+          to, subject, body,
+          contactName: lastParsed?.name || null,
+          contactFirm: lastParsed?.firm || null,
+          contactRole: lastParsed?.role || null,
+        }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        draftConfirmEl.textContent =
+          data.error === "gmail_not_connected" || data.error === "gmail_reauth_required"
+            ? "Gmail disconnected — reconnect at coldmatch.co/dashboard"
+            : "Failed to create draft. Try again.";
+        draftConfirmEl.className = "draft-confirm draft-error";
+        draftConfirmEl.classList.remove("hidden");
+      } else {
+        const url = data.draftUrl || "https://mail.google.com/mail/#drafts";
+        chrome.tabs.create({ url });
+      }
+    } catch (_) {
+      draftConfirmEl.textContent = "Could not reach server. Try again.";
+      draftConfirmEl.className = "draft-confirm draft-error";
+      draftConfirmEl.classList.remove("hidden");
+    }
+
+    gmailBtn.disabled = false;
+    gmailBtn.textContent = "Open in Gmail";
+  });
 });
 
 // Regenerate message using stored profile data

@@ -168,7 +168,11 @@ router.post("/draft", requireAuth, async (req, res) => {
       ).catch((err) => console.error("[gmail/draft] outreach log failed:", err));
     }
 
-    res.json({ success: true, message: "Draft saved to Gmail" });
+    const draftId  = draftRes.data?.id || null;
+    const draftUrl = draftId ? `https://mail.google.com/mail/#drafts/${draftId}` : null;
+    console.log("[gmail/draft] draftId:", draftId, "| draftUrl:", draftUrl);
+
+    res.json({ success: true, message: "Draft saved to Gmail", draftId, draftUrl });
   } catch (err) {
     console.error("[gmail/draft]", err);
 
