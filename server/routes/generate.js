@@ -253,7 +253,8 @@ BANNED PHRASES — do not use any of these under any circumstances:
 "any insights you could share", "I look forward to", "which is fascinating",
 "15 minutes" or any specific time duration for the ask,
 any phrase that summarizes the recipient's About section,
-any phrase that invents a specific deal, project, or initiative not in the data
+any phrase that invents a specific deal, project, or initiative not in the data,
+em dashes (—) in any form — rewrite any sentence that would use one to avoid it entirely; use a period, comma, or restructure the sentence instead
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
