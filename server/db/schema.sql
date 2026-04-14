@@ -42,6 +42,10 @@ ALTER TABLE profiles ADD COLUMN IF NOT EXISTS attach_resume BOOLEAN DEFAULT FALS
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS resume_pdf BYTEA;
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS resume_filename TEXT;
 
+-- Recruiting context (replaces target_role UX; target_role preserved for existing users)
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS recruiting_stage TEXT;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS target_areas TEXT;
+
 -- ─── Outreach tracker ─────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS outreach (
   id              UUID      PRIMARY KEY DEFAULT gen_random_uuid(),

@@ -895,11 +895,12 @@
         const details = document.getElementById('profile-details');
         if (profile) {
           const rows = [
-            ['Name',        toTitleCase(profile.name)],
-            ['School',      toTitleCase(profile.school)],
-            ['Major',       toTitleCase(profile.major)],
-            ['Goal',        profile.goal],
-            ['Target role', profile.target_role],
+            ['Name',             toTitleCase(profile.name)],
+            ['School',           toTitleCase(profile.school)],
+            ['Major',            toTitleCase(profile.major)],
+            ['Goal',             profile.goal],
+            ['Recruiting stage', profile.recruiting_stage],
+            ['Target areas',     profile.target_areas],
           ].filter(([, v]) => v);
           details.innerHTML = rows.map(([label, value], i) => `
             ${i > 0 ? '<hr class="profile-divider">' : ''}

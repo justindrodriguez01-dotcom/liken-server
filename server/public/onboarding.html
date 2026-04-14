@@ -415,26 +415,29 @@
             <option>Still figuring it out</option>
           </select>
         </div>
-        <div class="field-row">
-          <div class="field">
-            <label for="target-role">Target role</label>
-            <select id="target-role">
-              <option value="">Select</option>
-              <option>Internship</option>
-              <option>Full-time</option>
-              <option>Still exploring</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="timeline">Timeline</label>
-            <select id="timeline">
-              <option value="">Select</option>
-              <option>This summer</option>
-              <option>Next summer</option>
-              <option>After graduation</option>
-              <option>Just exploring</option>
-            </select>
-          </div>
+        <div class="field">
+          <label for="recruiting-stage">Where are you in recruiting?</label>
+          <select id="recruiting-stage">
+            <option value="">Select</option>
+            <option>Freshman — building early connections and exploring finance</option>
+            <option>Freshman — actively looking for any relevant finance internship</option>
+            <option>Sophomore — actively recruiting for a finance summer analyst role</option>
+            <option>Junior/Senior — actively recruiting for a full-time role</option>
+          </select>
+        </div>
+        <div class="field" id="target-areas-field" style="display:none;">
+          <label for="target-areas">What area(s) of finance are you targeting? <span style="color:var(--text-muted);font-weight:400;">(optional)</span></label>
+          <input type="text" id="target-areas" placeholder="e.g. Investment Banking, Sales &amp; Trading, Private Equity, Asset Management" />
+        </div>
+        <div class="field">
+          <label for="timeline">Timeline</label>
+          <select id="timeline">
+            <option value="">Select</option>
+            <option>This summer</option>
+            <option>Next summer</option>
+            <option>After graduation</option>
+            <option>Just exploring</option>
+          </select>
         </div>
       </div>
 
@@ -453,6 +456,11 @@
     if (urlToken) localStorage.setItem('cm_token', urlToken);
     const token = urlToken || localStorage.getItem('cm_token');
     if (!token) window.location.href = '/login';
+
+    // Show target-areas field when a recruiting stage is selected
+    document.getElementById('recruiting-stage').addEventListener('change', function () {
+      document.getElementById('target-areas-field').style.display = this.value ? '' : 'none';
+    });
 
     // ── Resume upload ──
     const uploadZone   = document.getElementById('upload-zone');
@@ -531,8 +539,12 @@
         if (p.major)            document.getElementById('major').value           = p.major;
         if (p.hometown)         document.getElementById('hometown').value        = p.hometown;
         if (p.target_location)  document.getElementById('target-location').value = p.target_location;
-        if (p.target_field)     document.getElementById('target-field').value    = p.target_field;
-        if (p.target_role)      document.getElementById('target-role').value     = p.target_role;
+        if (p.target_field)      document.getElementById('target-field').value      = p.target_field;
+        if (p.recruiting_stage) {
+          document.getElementById('recruiting-stage').value = p.recruiting_stage;
+          document.getElementById('target-areas-field').style.display = '';
+        }
+        if (p.target_areas)     document.getElementById('target-areas').value    = p.target_areas;
         if (p.timeline)         document.getElementById('timeline').value        = p.timeline;
 if (p.activities)       document.getElementById('activities').value      = p.activities;
 
@@ -576,16 +588,17 @@ if (p.activities)       document.getElementById('activities').value      = p.act
 
       const payload = {
         name,
-        school:           document.getElementById('school').value.trim(),
-        year:             document.getElementById('year').value,
-        major:            document.getElementById('major').value.trim(),
-        hometown:         document.getElementById('hometown').value.trim(),
-        target_location:  document.getElementById('target-location').value.trim(),
-        target_field:     document.getElementById('target-field').value,
-        target_role:      document.getElementById('target-role').value,
-        timeline:         document.getElementById('timeline').value,
-        work_experience:  workExp,
-        activities:       document.getElementById('activities').value.trim(),
+        school:            document.getElementById('school').value.trim(),
+        year:              document.getElementById('year').value,
+        major:             document.getElementById('major').value.trim(),
+        hometown:          document.getElementById('hometown').value.trim(),
+        target_location:   document.getElementById('target-location').value.trim(),
+        target_field:      document.getElementById('target-field').value,
+        recruiting_stage:  document.getElementById('recruiting-stage').value,
+        target_areas:      document.getElementById('target-areas').value.trim(),
+        timeline:          document.getElementById('timeline').value,
+        work_experience:   workExp,
+        activities:        document.getElementById('activities').value.trim(),
       };
 
       const btn = document.getElementById('save-btn');
