@@ -2,34 +2,82 @@ const express = require("express");
 const OpenAI  = require("openai");
 
 const router = express.Router();
-// TODO: re-add auth middleware after frontend auth is implemented
-// const requireAuth = require("../middleware/auth");
-// router.use(requireAuth);
 
 function getOpenAI() {
   return new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 }
 
-function buildSenderBlock(u) {
+// ─── Angle registry ───────────────────────────────────────────────────────────
+const ANGLE_DESCRIPTIONS = {
+  breaking_in:       "How they broke into finance and their advice for someone trying to do the same",
+  firm_strategy:     "Their firm's deals, strategy, or focus area — only reference deals or strategy explicitly mentioned in the recipient's profile or that are publicly known facts about the firm; never invent specific deals",
+  career_transition: "A specific career move they made — between roles, firms, or fields — and what drove that decision",
+};
+
+// ─── Sender block ─────────────────────────────────────────────────────────────
+// Uses recruiting_stage and target_areas. Does not include goal or target_role.
+function buildSenderBlock(u, angleKey, customNote) {
+  const stage       = u.recruiting_stage || "not provided";
+  const targetAreas = u.target_areas     || "not provided";
+  const angle       = ANGLE_DESCRIPTIONS[angleKey] || "not provided";
+  const note        = customNote         || "none";
+  const resume      = u.attach_resume    ? "true" : "false";
+
   return [
-    `- Name: ${u.name || "not provided"}`,
-    `- School: ${u.school || "not provided"}${u.year ? `, ${u.year} year` : ""}`,
-    `- Major: ${u.major || "not provided"}`,
-    `- Hometown: ${u.hometown || "not provided"}`,
-    `- Target job location: ${u.target_job_location || "not provided"}`,
-    `- Career goal: ${u.goal || "not provided"}`,
-    `- Target role type: ${u.target_role || "not provided"} (internship/full-time/exploring)`,
-    `- Timeline: ${u.timeline || "not provided"}`,
-    `- Work experience: ${u.work_experience || "not provided"}`,
-    `- Activities and clubs: ${u.activities || "not provided"}`,
+    `SENDER DATA:`,
+    `- Full name: ${u.name     || "not provided"}`,
+    `- School: ${u.school      || "not provided"}`,
+    `- Year: ${u.year          || "not provided"}`,
+    `- Major: ${u.major        || "not provided"}`,
+    `- Hometown: ${u.hometown  || "not provided"}`,
+    `- Activities & clubs: ${u.activities || "not provided"}`,
+    `- Recruiting stage: ${stage}`,
+    `- Target areas: ${targetAreas}`,
+    `- Selected angle: ${angle}`,
+    `- Custom note: ${note}`,
+    `- Attach resume: ${resume}`,
   ].join("\n");
 }
 
-const ANGLE_DESCRIPTIONS = {
-  breaking_in:       "the sender wants to understand how the recipient broke into their field and what advice they'd give someone trying to do the same",
-  firm_strategy:     "the sender is curious about the recipient's firm specifically — its deals, investment strategy, focus areas, or how they think about the work",
-  career_transition: "the sender is curious about a specific move the recipient made — between roles, firms, or fields — and what drove that decision",
-};
+// ─── Recipient block ──────────────────────────────────────────────────────────
+// Wraps the raw scraped LinkedIn string in a strict labeled template so GPT
+// is forced to populate each field from verified data only.
+function buildRecipientBlock(profileData) {
+  return `\
+RAW SCRAPED LINKEDIN DATA — read this carefully before filling in the block below:
+${profileData}
+
+RECIPIENT DATA — populate each field using ONLY what is explicitly stated in the raw data above.
+If a field is not clearly and explicitly present, write NOT AVAILABLE. Do not infer, invent, or assume.
+- Full name: [extract from data]
+- Current role: [job title — only if explicitly present, otherwise: NOT AVAILABLE]
+- Current firm: [employer — only if explicitly present, otherwise: NOT AVAILABLE]
+- Previous roles: [list of previous titles and firms from experience — only what is explicitly present, otherwise: NOT AVAILABLE]
+- Education: [schools attended — only what is explicitly in education data, otherwise: NOT AVAILABLE]
+- Location: [city/region — only if explicitly present, otherwise: NOT AVAILABLE]
+- About section: [verbatim if present, otherwise: NOT AVAILABLE]
+
+Any field marked NOT AVAILABLE must never be referenced, implied, or compensated for in the email.
+If a field is NOT AVAILABLE, act as if that information does not exist.`;
+}
+
+// ─── CTA calibration ──────────────────────────────────────────────────────────
+function ctaInstruction(u) {
+  const stage = (u.recruiting_stage || "").toLowerCase();
+  const areas = u.target_areas ? ` about ${u.target_areas} recruiting` : "";
+
+  if (stage.includes("building early connections") || stage.includes("exploring")) {
+    return `Ask (soft): express genuine curiosity and close with something like "would love to hear your perspective if you ever have a few minutes." No pressure, no job ask.`;
+  }
+  if (stage.includes("actively looking for any relevant")) {
+    return `Ask (warm): slightly more direct — "would love to connect and learn more about your path" — keep it relational, not transactional.`;
+  }
+  if (stage.includes("sophomore") || stage.includes("junior") || stage.includes("senior")) {
+    return `Ask (direct): reference their target areas explicitly — "would love to find time for a quick call${areas} if you're open to it."`;
+  }
+  // Default fallback
+  return `Ask: close with a low-pressure ask for a quick call. Acknowledge they're busy.`;
+}
 
 // ─── POST /generate/score ──────────────────────────────────────────────────────
 // Body: { profileData: string, userProfile: object }
@@ -53,11 +101,9 @@ router.post("/score", async (req, res) => {
 
 You have full context on both people:
 
-SENDER:
-${buildSenderBlock(userProfile)}
+${buildSenderBlock(userProfile, null, null)}
 
-RECIPIENT:
-${profileData}
+${buildRecipientBlock(profileData)}
 
 Your job: Give an honest, calibrated score from 0-100 representing how valuable it would be for THIS sender to reach out to THIS recipient RIGHT NOW given the sender's specific goals and stage.
 
@@ -104,7 +150,7 @@ Good: "Went IB → PE at a mid-market fund — exactly the path sender wants to 
 });
 
 // ─── POST /generate/email ──────────────────────────────────────────────────────
-// Body: { profileData: string, userProfile: object, targetingAngle: string }
+// Body: { profileData: string, userProfile: object, targetingAngle: string, customNote: string }
 // Returns: { subject, body }
 router.post("/email", async (req, res) => {
   const { profileData, userProfile, targetingAngle, customNote } = req.body;
@@ -114,76 +160,107 @@ router.post("/email", async (req, res) => {
   }
 
   const angleKey = targetingAngle && ANGLE_DESCRIPTIONS[targetingAngle] ? targetingAngle : "breaking_in";
-  const angleDescription = ANGLE_DESCRIPTIONS[angleKey];
 
-  const customNoteInstruction = customNote
-    ? `\nCUSTOM CONTEXT FROM SENDER: "${customNote}" — weave this in naturally where it fits. Do not let it override the angle above.`
-    : "";
+  const resumeRule = userProfile.attach_resume
+    ? `RESUME: The sender is attaching their resume. Include exactly one natural mention — e.g. "I've attached my resume for reference" — placed where it fits. Do not force it at the end.`
+    : `RESUME: attach_resume is false. Do NOT mention a resume anywhere in the email under any circumstances.`;
 
-  const resumeInstruction = userProfile.attach_resume
-    ? "\nRESUME NOTE: The sender is attaching their resume to this email. Naturally work in a brief mention of this — e.g. 'I've attached my resume for context' — placed wherever it fits best. Do not force it at the end."
-    : "";
+  const customNoteRule = customNote
+    ? `CUSTOM NOTE: "${customNote}" — weave this in naturally in the body if it fits. It is supplementary; never let it override the angle.`
+    : `CUSTOM NOTE: none provided.`;
+
+  const ctaRule = ctaInstruction(userProfile);
 
   try {
     const openai = getOpenAI();
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
-      temperature: 0.8,
+      temperature: 0.7,
       messages: [{
         role: "user",
-        content: `You are writing a cold outreach email on behalf of a college student. It must sound like a real human wrote it — not AI, not a template.
+        content: `CRITICAL RULES — NON-NEGOTIABLE. Violating any of these is a failure:
+1. Only reference facts explicitly listed in the RECIPIENT DATA block. Never invent or infer details.
+2. Do not reference a school the recipient attended unless it is explicitly listed in their education data.
+3. Do not reference a firm unless it is explicitly listed as their current or previous employer.
+4. Do not imply shared experiences unless that connection is explicitly verified in both the sender's profile and the recipient's data.
+5. If a field is marked NOT AVAILABLE, do not mention it, imply it, or compensate by guessing around it.
+6. If there is limited genuine overlap between sender and recipient, write a shorter and more honest cold outreach email. Do not fabricate connections.
+7. Never summarize the recipient's About section back to them.
+8. Never mention how long the sender has been interested in finance or any personal backstory beyond their current school, year, and major.
 
-SENDER CONTEXT:
-${buildSenderBlock(userProfile)}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-RECIPIENT CONTEXT:
-${profileData}
+${buildRecipientBlock(profileData)}
 
-ANGLE — this drives the email's focus and the specific ask:
-${angleDescription}${customNoteInstruction}${resumeInstruction}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-━━━ STEP 1: DETECT SHARED BACKGROUND ━━━
+${buildSenderBlock(userProfile, angleKey, customNote)}
 
-SHARED UNIVERSITY — mandatory highest-priority hook:
-Compare sender's school against every institution in the recipient's profile. If they match, this is the primary hook and MUST appear in two places:
-  1. Subject line: simple and descriptive — e.g. "Fellow Michigan Ross Student Reaching Out", "University of Michigan Student Question". School name must literally appear. Keep it plain, not clever.
-  2. Email opening: the first sentence after the intro must reference the shared school as the natural reason for writing — e.g. "I noticed you went to Michigan too" or "I saw you're a fellow Ross alum."
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-OTHER SHARED BACKGROUND:
-Check for shared clubs, organizations, sports teams, Greek life, or hometown. Use after university mention, or as the hook if no shared university.
+STEP 1 — VERIFY SHARED BACKGROUND (do this silently before writing anything):
+- Does the sender's school exactly match any school in the recipient's education data? If yes → shared university confirmed.
+- Do any of the sender's activities or clubs match any organization in the recipient's profile? If yes → shared org confirmed.
+- Does the sender's hometown match the recipient's location? If yes → shared location noted.
+Only use a connection if it is confirmed here. If nothing is confirmed, do not force one.
 
-━━━ STEP 2: WRITE THE EMAIL ━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-The email MUST follow this exact structure — no reordering:
+STEP 2 — WRITE THE EMAIL using this exact structure:
 
-1. Greeting: Hi [first name],
+1. Greeting: Hi [recipient first name only],
+   — Never use Mr. or Ms. Regardless of seniority, always use first name only.
 
-2. Sender intro (1 sentence): "I'm [name], a [year] [major] student at [school]."
+2. Intro (1 sentence): "My name is [sender full name], and I'm a [year] at [school] studying [major]."
+   — Use the exact school name and major from SENDER DATA. Never hardcode Michigan or Business Administration.
 
-3. Hook (1 sentence): The strongest connection from Step 1, or one specific verifiable fact from their actual career history — stated plainly. No compliments.
+3. Hook (1 sentence): The single strongest verified connection from Step 1, stated plainly.
+   — If shared university confirmed: lead with that — e.g. "I noticed you went to [School] too" or "I saw you're a [School] alum."
+   — If no shared university: one specific, verified observation about the recipient's career based ONLY on confirmed RECIPIENT DATA — their actual role, firm, or career path. If no strong hook exists, use a brief honest reason for reaching out based on their field or role.
+   — Never invent a hook. Never compliment a trait directly.
 
-4. Body (1–2 sentences): Genuine curiosity driven by the angle. Specific to what this person actually did. If customNote is provided, work it in here naturally only if it fits.
+4. Body (1–2 sentences): Genuine curiosity driven by the selected angle. Specific to what this person actually did. ${customNoteRule}
 
-5. CTA (1 sentence): Low-pressure. Acknowledge they're busy. End with "if you have time for a quick call" — do not say "15 minutes" or any specific time.
+5. ${ctaRule}
 
-6. Sign-off: Best,\\n[Sender first name]
+6. ${resumeRule}
 
-━━━ RULES ━━━
-- Under 120 words total
-- Never mention how long the sender has been interested in finance or any field — no personal backstory, no "I've always been passionate about…"
-- Never say "15 minutes" — use "quick call" only, no time specified
-- Never invent details not in the profile
-- NEVER use: "your journey", "truly impressive", "I hope this finds you well", "would greatly appreciate", "any insights you could share", "thank you for considering", "I look forward to", "extensive experience", "really resonated", "was impressed by", "which is fascinating", "built a strong career", "I came across your profile"
-- Never summarize their About section
-- Never compliment a skill or trait directly
-- Never force a shared connection that doesn't exist in the data
+7. Sign-off: Best,\\n[sender full name]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+SUBJECT LINE RULES:
+- If shared university confirmed: "[School Name] Student Reaching Out" or "[School Name] Student Interested in [Recipient's Firm or Field]" — e.g. "Michigan Ross Student Interested in IB at Goldman Sachs"
+- If no shared university: "[Sender School] Student Interested in [Recipient's Field or Firm]"
+- Never say "Fellow Alum" — the sender is a current student, not an alum.
+- Never use "Quick Question" or any vague filler subject line.
+- Only reference firms or schools that are verified in the data.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+HARD LIMITS:
+- Under 120 words total (body only, excluding subject and sign-off)
+- Email must sound like a real human wrote it — not AI, not a template
+
+BANNED PHRASES — do not use any of these under any circumstances:
+"your journey", "truly impressive", "your impressive background",
+"I came across your profile and was impressed", "I would greatly appreciate",
+"thank you for considering", "I hope this email finds you well",
+"I hope this note finds you well", "which aligns with my goals",
+"which aligns perfectly", "I noticed you also" (unless the shared connection is explicitly verified),
+"extensive experience", "really resonated", "built a strong career",
+"any insights you could share", "I look forward to", "which is fascinating",
+"15 minutes" or any specific time duration for the ask,
+any phrase that summarizes the recipient's About section,
+any phrase that invents a specific deal, project, or initiative not in the data
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 Return ONLY this JSON:
 {
-  "subject": "subject line — if shared university: school name must appear, simple and descriptive; otherwise ≤8 words, specific, no recipient name",
-  "body": "full email — \\n\\n between paragraphs, \\n between Best, and sender name",
-  "hook": "one specific line: e.g. 'Shared Michigan Ross — in subject + opening', 'No shared school — opens with Carlyle→Blackstone move', 'AFA connection woven into body'"
+  "subject": "subject line per the rules above",
+  "body": "full email — \\n\\n between paragraphs, \\n between Best, and sender name"
 }`,
       }],
     });
