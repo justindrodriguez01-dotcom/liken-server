@@ -1,85 +1,84 @@
-const { Jimp } = require("jimp");
-const path = require("path");
+const { createCanvas } = require('@napi-rs/canvas');
+const fs = require('fs');
+const path = require('path');
 
-// Purple #7C3AED = rgba(124, 58, 237, 255)
-const PURPLE = 0x7c3aedff;
-const WHITE  = 0xffffffff;
-const TRANS  = 0x00000000;
+function drawIcon(size) {
+  const canvas = createCanvas(size, size);
+  const ctx = canvas.getContext('2d');
+  const s = size / 100;
 
-// Draw a filled circle (used to stamp rounded-corner pixels)
-function inRoundedRect(x, y, size, radius) {
-  // Check if pixel (x, y) is inside a rounded rectangle
-  const r = radius;
-  const cx = x + 0.5;
-  const cy = y + 0.5;
-  if (cx >= r && cx <= size - r) return true; // horizontal band
-  if (cy >= r && cy <= size - r) return true; // vertical band
-  // Corner circles
-  const corners = [
-    [r, r],
-    [size - r, r],
-    [r, size - r],
-    [size - r, size - r],
-  ];
-  return corners.some(([qx, qy]) => Math.hypot(cx - qx, cy - qy) <= r);
-}
+  // Rounded square background #F5F4F1
+  const r = 20 * s;
+  ctx.beginPath();
+  ctx.moveTo(r, 0);
+  ctx.lineTo(size - r, 0);
+  ctx.quadraticCurveTo(size, 0, size, r);
+  ctx.lineTo(size, size - r);
+  ctx.quadraticCurveTo(size, size, size - r, size);
+  ctx.lineTo(r, size);
+  ctx.quadraticCurveTo(0, size, 0, size - r);
+  ctx.lineTo(0, r);
+  ctx.quadraticCurveTo(0, 0, r, 0);
+  ctx.closePath();
+  ctx.fillStyle = '#F5F4F1';
+  ctx.fill();
 
-// Draw the ✦ shape by painting 4 diamond lobes and a centre dot
-function drawSparkle(img, size) {
   const cx = size / 2;
   const cy = size / 2;
-  // Outer radius of each lobe (tip distance from centre)
-  const outer = size * 0.38;
-  // Inner radius (waist between lobes)
-  const inner = size * 0.08;
+  const arcR = 32 * s;
 
-  for (let y = 0; y < size; y++) {
-    for (let x = 0; x < size; x++) {
-      const dx = x + 0.5 - cx;
-      const dy = y + 0.5 - cy;
+  // C arc: clockwise from 45° to -45° (270° sweep, opening right)
+  ctx.beginPath();
+  ctx.arc(cx, cy, arcR, Math.PI / 4, -Math.PI / 4, false);
+  ctx.strokeStyle = '#0D7377';
+  ctx.lineWidth = 8 * s;
+  ctx.lineCap = 'round';
+  ctx.stroke();
 
-      // Convert to polar
-      const angle = Math.atan2(dy, dx); // -π … π
-      const dist  = Math.hypot(dx, dy);
+  // Crosshair tick marks
+  ctx.strokeStyle = '#0D7377';
+  ctx.lineWidth = 3 * s;
+  ctx.lineCap = 'round';
+  const t1 = 14 * s, t2 = 22 * s;
+  // Top
+  ctx.beginPath(); ctx.moveTo(cx, t1); ctx.lineTo(cx, t2); ctx.stroke();
+  // Bottom
+  ctx.beginPath(); ctx.moveTo(cx, size - t1); ctx.lineTo(cx, size - t2); ctx.stroke();
+  // Left
+  ctx.beginPath(); ctx.moveTo(t1, cy); ctx.lineTo(t2, cy); ctx.stroke();
+  // Right (inside C opening)
+  ctx.beginPath(); ctx.moveTo(size - t1, cy); ctx.lineTo(size - t2, cy); ctx.stroke();
 
-      // ✦ has 4 points at 0°, 90°, 180°, 270°
-      // The radial boundary of the 4-pointed star:
-      // r(θ) interpolates between inner (45° between spokes) and outer (on a spoke)
-      const spoke = ((angle % (Math.PI / 2)) + Math.PI / 2) % (Math.PI / 2);
-      // spoke is 0 at a tip, π/4 at a waist
-      const t = Math.abs(spoke - Math.PI / 4) / (Math.PI / 4); // 0 at waist, 1 at tip
-      const boundary = inner + (outer - inner) * t;
+  // Center dot
+  ctx.fillStyle = '#0D7377';
+  ctx.beginPath();
+  ctx.arc(cx, cy, 3 * s, 0, Math.PI * 2);
+  ctx.fill();
 
-      if (dist <= boundary) {
-        img.setPixelColor(WHITE, x, y);
-      }
-    }
+  // Faded endpoint dots at C openings
+  const ex = cx + arcR * Math.cos(Math.PI / 4);
+  const ey1 = cy + arcR * Math.sin(Math.PI / 4);
+  const ey2 = cy - arcR * Math.sin(Math.PI / 4);
+  ctx.globalAlpha = 0.3;
+  ctx.fillStyle = '#0D7377';
+  ctx.beginPath(); ctx.arc(ex, ey1, 4 * s, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(ex, ey2, 4 * s, 0, Math.PI * 2); ctx.fill();
+  ctx.globalAlpha = 1.0;
+
+  return canvas;
+}
+
+async function generateIcons() {
+  const iconsDir = path.join(__dirname, 'icons');
+  if (!fs.existsSync(iconsDir)) fs.mkdirSync(iconsDir);
+
+  for (const size of [16, 32, 48, 128]) {
+    const canvas = drawIcon(size);
+    const buffer = canvas.toBuffer('image/png');
+    const outPath = path.join(iconsDir, `icon${size}.png`);
+    fs.writeFileSync(outPath, buffer);
+    console.log(`Created ${outPath}`);
   }
 }
 
-async function generate(size) {
-  const radius = Math.round(size * 0.2);
-  const img = new Jimp({ width: size, height: size, color: TRANS });
-
-  // Paint rounded-rect background
-  for (let y = 0; y < size; y++) {
-    for (let x = 0; x < size; x++) {
-      if (inRoundedRect(x, y, size, radius)) {
-        img.setPixelColor(PURPLE, x, y);
-      }
-    }
-  }
-
-  // Draw ✦ in white
-  drawSparkle(img, size);
-
-  const outPath = path.join(__dirname, `icon${size}.png`);
-  await img.write(outPath);
-  console.log(`Created ${outPath}`);
-}
-
-(async () => {
-  for (const size of [16, 48, 128]) {
-    await generate(size);
-  }
-})();
+generateIcons().catch(console.error);
