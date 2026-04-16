@@ -17,9 +17,9 @@
       --surface: #ffffff;
       --border: #e5e4e2;
       --border-strong: #d1d0ce;
-      --accent: #2563EB;
-      --accent-hover: #1d4ed8;
-      --accent-dim: rgba(37,99,235,0.08);
+      --accent: #0D7377;
+      --accent-hover: #0A5F63;
+      --accent-dim: rgba(13,115,119,0.08);
       --text-primary: #111111;
       --text-secondary: #6b7280;
       --text-muted: #9ca3af;
@@ -162,7 +162,7 @@
       letter-spacing: -0.01em;
     }
     .btn-primary:hover { background: var(--accent-hover); }
-    .btn-primary:disabled { background: #93c5fd; cursor: not-allowed; }
+    .btn-primary:disabled { background: #7ab8ba; cursor: not-allowed; }
 
     .link-subtle {
       font-size: 13px;
@@ -191,7 +191,7 @@
       flex-shrink: 0;
       width: 20px;
       height: 20px;
-      background: #e8f0fd;
+      background: #d4eced;
       border-radius: 50%;
       display: flex;
       align-items: center;
@@ -249,7 +249,7 @@
     .toggle-switch input:checked + .toggle-slider { background: var(--accent); }
     .toggle-switch input:checked + .toggle-slider::before { transform: translateX(16px); }
     .toggle-switch input:disabled + .toggle-slider { background: #e5e7eb; cursor: not-allowed; }
-    .toggle-switch input:disabled:checked + .toggle-slider { background: #93c5fd; }
+    .toggle-switch input:disabled:checked + .toggle-slider { background: #7ab8ba; }
 
     /* ── Scope upgrade banner ── */
     .scope-banner {
@@ -468,7 +468,7 @@
 
     /* Stage badge colors: Drafted=gray, Contacted=blue, Replied=green, Meeting=purple, Offer=gold */
     .badge-drafted    { background: #f3f4f6; color: #374151; }
-    .badge-contacted  { background: #dbeafe; color: #1e40af; }
+    .badge-contacted  { background: #d4eced; color: #0A5F63; }
     .badge-replied    { background: #d1fae5; color: #065f46; }
     .badge-meeting    { background: #ede9fe; color: #5b21b6; }
     .badge-offer      { background: #fef3c7; color: #92400e; }
@@ -582,7 +582,7 @@
       display: inline-block;
       width: 18px;
       height: 18px;
-      border: 2px solid rgba(37,99,235,0.2);
+      border: 2px solid rgba(13,115,119,0.2);
       border-top-color: var(--accent);
       border-radius: 50%;
       animation: spin 0.7s linear infinite;
@@ -616,7 +616,7 @@
     }
     .stage-select:hover { opacity: 0.85; }
     .stage-select-badge-drafted   { background: #f3f4f6; color: #374151; }
-    .stage-select-badge-contacted { background: #dbeafe; color: #1e40af; }
+    .stage-select-badge-contacted { background: #d4eced; color: #0A5F63; }
     .stage-select-badge-replied   { background: #d1fae5; color: #065f46; }
     .stage-select-badge-meeting   { background: #ede9fe; color: #5b21b6; }
     .stage-select-badge-offer     { background: #fef3c7; color: #92400e; }
