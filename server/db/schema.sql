@@ -45,6 +45,30 @@ ALTER TABLE profiles ADD COLUMN IF NOT EXISTS resume_filename TEXT;
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS recruiting_stage TEXT;
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS target_areas TEXT;
 
+-- ─── Saved alumni/contact databases (CSV uploads) ────────────────────────────
+CREATE TABLE IF NOT EXISTS saved_databases (
+  id             UUID      PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id        UUID      REFERENCES users(id) ON DELETE CASCADE,
+  filename       TEXT      NOT NULL,
+  column_mapping JSONB,
+  contacts       JSONB     NOT NULL DEFAULT '[]',
+  uploaded_at    TIMESTAMP DEFAULT NOW()
+);
+
+-- ─── Apollo waitlist ──────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS apollo_waitlist (
+  id         UUID  PRIMARY KEY DEFAULT gen_random_uuid(),
+  email      TEXT  NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- ─── LinkedIn scrape cache (7-day TTL) ────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS linkedin_cache (
+  url          TEXT      PRIMARY KEY,
+  profile_data TEXT      NOT NULL,
+  scraped_at   TIMESTAMP DEFAULT NOW()
+);
+
 -- ─── Outreach tracker ─────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS outreach (
   id              UUID      PRIMARY KEY DEFAULT gen_random_uuid(),

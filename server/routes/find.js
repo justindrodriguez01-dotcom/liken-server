@@ -1,0 +1,474 @@
+const express     = require("express");
+const multer      = require("multer");
+const xlsx        = require("xlsx");
+const axios       = require("axios");
+const cheerio     = require("cheerio");
+const OpenAI      = require("openai");
+const { query }   = require("../db");
+const requireAuth = require("../middleware/auth");
+
+const router = express.Router();
+router.use(requireAuth);
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 20 * 1024 * 1024 },
+});
+
+function getOpenAI() {
+  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+}
+
+// ─── Finance heuristics ───────────────────────────────────────────────────────
+
+const FINANCE_FIRMS = new Set([
+  "goldman sachs", "morgan stanley", "jpmorgan chase", "jpmorgan", "jp morgan",
+  "bank of america", "citigroup", "citi", "deutsche bank", "barclays", "ubs",
+  "credit suisse", "wells fargo", "jefferies", "lazard", "evercore", "moelis",
+  "pjt partners", "houlihan lokey", "rothschild", "perella weinberg",
+  "blackstone", "kkr", "carlyle", "apollo global management", "apollo",
+  "tpg", "warburg pincus", "bain capital", "vista equity", "silver lake",
+  "advent international", "general atlantic", "summit partners",
+  "francisco partners", "thoma bravo", "ares management",
+  "citadel", "two sigma", "de shaw", "renaissance technologies",
+  "millennium management", "bridgewater", "point72", "aqr capital",
+  "farallon capital", "tiger global", "coatue management", "lone pine",
+  "blackrock", "vanguard", "fidelity", "state street", "pimco",
+  "man group", "tudor investment", "baupost",
+]);
+
+const FINANCE_KEYWORDS = [
+  "capital", "partners", "investment", "investments", "management",
+  "advisors", "securities", "asset", "equity", "fund", "financial",
+  "ventures", "trading", "banking", "wealth", "portfolio", "hedge",
+];
+
+const SENIOR_ROLES = ["managing director", "md", "partner", "managing partner", "head of"];
+const MID_ROLES    = ["vice president", " vp", "director", "principal", "senior associate"];
+const JUNIOR_ROLES = ["analyst", "associate", "summer analyst", "investment banking"];
+
+function matchLevel(contact, userSchool) {
+  const co   = (contact.company || "").toLowerCase();
+  const role = (contact.role    || "").toLowerCase();
+  const sch  = (contact.school  || "").toLowerCase();
+
+  let score = 0;
+
+  // Company
+  if (FINANCE_FIRMS.has(co)) score += 4;
+  else if (FINANCE_KEYWORDS.some(k => co.includes(k))) score += 2;
+
+  // Role
+  if (SENIOR_ROLES.some(r => role.includes(r))) score += 3;
+  else if (MID_ROLES.some(r => role.includes(r)))  score += 2;
+  else if (JUNIOR_ROLES.some(r => role.includes(r))) score += 1;
+
+  // School match (strongest personalisation hook)
+  if (userSchool && sch) {
+    const us = userSchool.toLowerCase();
+    if (us.includes(sch.slice(0, 6)) || sch.includes(us.slice(0, 6))) score += 4;
+  }
+
+  // Has LinkedIn (enhanced generation possible)
+  if (contact.linkedin_url) score += 1;
+
+  if (score >= 5) return "High";
+  if (score >= 2) return "Medium";
+  return "Low";
+}
+
+// ─── Build profile data string for generation ────────────────────────────────
+
+function buildProfileString(contact, assumedSchool) {
+  const lines = [];
+  if (contact.name)         lines.push(`Name: ${contact.name}`);
+  if (contact.role)         lines.push(`Current Role: ${contact.role}`);
+  if (contact.company)      lines.push(`Current Firm: ${contact.company}`);
+  if (contact.school)       lines.push(`School: ${contact.school}`);
+  else if (assumedSchool)   lines.push(`School: ${assumedSchool} (alumni database — treat as confirmed)`);
+  if (contact.email)        lines.push(`Email: ${contact.email}`);
+  return lines.join("\n") || "Limited information available";
+}
+
+// ─── Email prompt for CSV contacts ───────────────────────────────────────────
+
+function buildBatchEmailPrompt(profileData, userProfile, sharedSchool) {
+  const stage     = userProfile.recruiting_stage || "not provided";
+  const areas     = userProfile.target_areas     || "not provided";
+  const resume    = userProfile.attach_resume ? "true" : "false";
+
+  const senderBlock = [
+    "SENDER DATA:",
+    `- Full name: ${userProfile.name     || "not provided"}`,
+    `- School: ${userProfile.school      || "not provided"}`,
+    `- Year: ${userProfile.year          || "not provided"}`,
+    `- Major: ${userProfile.major        || "not provided"}`,
+    `- Hometown: ${userProfile.hometown  || "not provided"}`,
+    `- Activities & clubs: ${userProfile.activities || "not provided"}`,
+    `- Recruiting stage: ${stage}`,
+    `- Target areas: ${areas}`,
+    `- Selected angle: How they broke into finance and their advice for someone trying to do the same`,
+    `- Attach resume: ${resume}`,
+  ].join("\n");
+
+  const recipientBlock = `RAW DATA — read carefully:\n${profileData}\n\nRECIPIENT DATA — populate ONLY from raw data above. Use NOT AVAILABLE if not present:\n- Full name: [extract]\n- Current role: [extract or NOT AVAILABLE]\n- Current firm: [extract or NOT AVAILABLE]\n- Education: [extract or NOT AVAILABLE]\nAny field marked NOT AVAILABLE must not be referenced in the email.`;
+
+  const sharedSchoolNote = sharedSchool
+    ? `SCHOOL HOOK: The sender and recipient both attended ${userProfile.school}. Lead with this — it is the strongest opener. State it plainly: "I noticed you went to [School] too" or "I saw you're a [School] alum."`
+    : "SCHOOL HOOK: No confirmed shared school. Use the recipient's role or career path as the hook instead.";
+
+  const resumeRule = userProfile.attach_resume
+    ? `RESUME: Include exactly one natural mention — e.g. "I've attached my resume for reference" — where it fits.`
+    : `RESUME: Do NOT mention a resume anywhere.`;
+
+  let ctaRule = "Ask: close with a low-pressure ask for a quick call.";
+  const sl = stage.toLowerCase();
+  if (sl.includes("sophomore") || sl.includes("junior") || sl.includes("senior")) {
+    ctaRule = `Ask (direct): "would love to find time for a quick call${areas !== "not provided" ? ` about ${areas} recruiting` : ""} if you're open to it."`;
+  } else if (sl.includes("building early") || sl.includes("exploring")) {
+    ctaRule = `Ask (soft): "would love to hear your perspective if you ever have a few minutes."`;
+  }
+
+  return `CRITICAL RULES:
+1. Only reference facts explicitly listed in RECIPIENT DATA.
+2. Do not reference a school the recipient attended unless confirmed in their data (or the SCHOOL HOOK note above).
+3. Never invent specific deals, projects, or personal details.
+4. Never summarize the recipient's About section back to them.
+5. Under 120 words total (body only, excluding subject and sign-off).
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+${recipientBlock}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+${senderBlock}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+${sharedSchoolNote}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+WRITE THE EMAIL:
+1. Greeting: Hi [first name only],
+2. Intro: "My name is [sender name], and I'm a [year] at [school] studying [major]."
+3. Hook: ${sharedSchool ? "Lead with the shared school (see SCHOOL HOOK)." : "One specific verified observation about their career."}
+4. Body (1-2 sentences): genuine curiosity about how they broke into finance.
+5. ${ctaRule}
+6. ${resumeRule}
+7. Sign-off: Best,\\n[sender full name]
+
+SUBJECT LINE: "${userProfile.school ? `${userProfile.school} Student` : "Student"} Reaching Out${sharedSchool ? "" : " — Interested in Your Path"}"
+
+BANNED PHRASES: "your journey", "truly impressive", "I hope this email finds you well",
+"which aligns with", "valuable insights", "extensive experience", "really resonated",
+"I look forward to", "15 minutes", any em dash (use comma or period instead).
+
+Return ONLY this JSON:
+{ "subject": "...", "body": "..." }`;
+}
+
+// ─── POST /find/scrape ────────────────────────────────────────────────────────
+router.post("/scrape", async (req, res) => {
+  const { url } = req.body;
+  if (!url || !url.includes("linkedin.com/in/")) {
+    return res.status(400).json({ error: "Please enter a valid LinkedIn profile URL." });
+  }
+
+  // Check 7-day cache
+  try {
+    const cached = await query(
+      "SELECT profile_data FROM linkedin_cache WHERE url = $1 AND scraped_at > NOW() - INTERVAL '7 days'",
+      [url]
+    );
+    if (cached.rows.length > 0) {
+      return res.json({ profileData: cached.rows[0].profile_data, cached: true });
+    }
+  } catch (_) {}
+
+  // Attempt scrape
+  try {
+    const response = await axios.get(url, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Cache-Control": "no-cache",
+      },
+      timeout: 12000,
+      maxRedirects: 5,
+    });
+
+    const html = response.data || "";
+    const blocked =
+      html.includes("authwall") ||
+      html.includes("/checkpoint/") ||
+      html.includes("Join LinkedIn") ||
+      response.request?.res?.responseUrl?.includes("login") ||
+      html.length < 3000;
+
+    if (blocked) {
+      return res.json({
+        error: "Could not load this profile automatically. Try opening it in LinkedIn and using the extension instead.",
+        blocked: true,
+      });
+    }
+
+    const $ = cheerio.load(html);
+    const name     = $("h1").first().text().trim();
+    const headline = $("h2").first().text().trim() || $("[class*='headline']").first().text().trim();
+    const location = $("[class*='location']").first().text().trim();
+
+    const profileData = [
+      name     ? `Name: ${name}`         : null,
+      headline ? `Headline: ${headline}` : null,
+      location ? `Location: ${location}` : null,
+      "[Partial data — full personalization requires the LinkedIn extension]",
+    ].filter(Boolean).join("\n");
+
+    // Cache result
+    try {
+      await query(
+        "INSERT INTO linkedin_cache (url, profile_data) VALUES ($1, $2) ON CONFLICT (url) DO UPDATE SET profile_data = $2, scraped_at = NOW()",
+        [url, profileData]
+      );
+    } catch (_) {}
+
+    res.json({ profileData, cached: false, partial: true });
+  } catch (err) {
+    const status = err.response?.status;
+    if (status === 999 || status === 403 || status === 401 || status === 302) {
+      return res.json({
+        error: "Could not load this profile automatically. Try opening it in LinkedIn and using the extension instead.",
+        blocked: true,
+      });
+    }
+    console.error("[find/scrape]", err.message);
+    res.json({
+      error: "Could not load this profile automatically. Try opening it in LinkedIn and using the extension instead.",
+      blocked: true,
+    });
+  }
+});
+
+// ─── POST /find/parse-upload ──────────────────────────────────────────────────
+router.post("/parse-upload", upload.single("file"), async (req, res) => {
+  if (!req.file) return res.status(400).json({ error: "No file uploaded." });
+
+  try {
+    const workbook = xlsx.read(req.file.buffer, { type: "buffer" });
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+    const rows = xlsx.utils.sheet_to_json(sheet, { header: 1, defval: "" });
+
+    if (rows.length < 2) return res.status(400).json({ error: "File appears to be empty." });
+
+    const columns = rows[0].map(c => String(c).trim()).filter(Boolean);
+    const dataRows = rows.slice(1).filter(row => row.some(cell => String(cell).trim() !== ""));
+    const allRows = dataRows.map(row =>
+      Object.fromEntries(columns.map((col, i) => [col, String(row[i] ?? "").trim()]))
+    );
+
+    res.json({
+      columns,
+      preview: allRows.slice(0, 5),
+      allRows,
+      totalRows: allRows.length,
+      filename: req.file.originalname || "upload.csv",
+    });
+  } catch (err) {
+    console.error("[find/parse-upload]", err);
+    res.status(400).json({ error: "Could not parse file. Please use a valid CSV or Excel file." });
+  }
+});
+
+// ─── POST /find/score-contacts ────────────────────────────────────────────────
+// Body: { contacts: [{name,email,company,role,school,linkedin_url}], assumedSchool? }
+router.post("/score-contacts", async (req, res) => {
+  const { contacts, assumedSchool } = req.body;
+  if (!Array.isArray(contacts)) return res.status(400).json({ error: "contacts array required" });
+
+  try {
+    const profileRes = await query(
+      "SELECT school FROM profiles WHERE user_id = $1",
+      [req.userId]
+    );
+    const userSchool = assumedSchool || profileRes.rows[0]?.school || "";
+
+    // Existing tracker entries for dedup
+    const outreachRes = await query(
+      "SELECT LOWER(name) AS n, LOWER(COALESCE(firm,'')) AS f FROM outreach WHERE user_id = $1",
+      [req.userId]
+    );
+    const existingSet = new Set(outreachRes.rows.map(r => r.n));
+
+    // Deduplicate by email (primary) or name+company
+    const seen = new Map();
+    const deduped = [];
+    for (const c of contacts) {
+      const key = (c.email || "").toLowerCase().trim() ||
+                  `${(c.name || "").toLowerCase()}|${(c.company || "").toLowerCase()}`;
+      if (seen.has(key)) continue;
+      seen.set(key, true);
+      const ml = matchLevel(c, userSchool);
+      const alreadyContacted = existingSet.has((c.name || "").toLowerCase().trim());
+      deduped.push({ ...c, matchLevel: ml, alreadyContacted });
+    }
+
+    // Sort: non-contacted first, then High > Medium > Low
+    const order = { High: 0, Medium: 1, Low: 2 };
+    deduped.sort((a, b) => {
+      if (a.alreadyContacted !== b.alreadyContacted) return a.alreadyContacted ? 1 : -1;
+      return (order[a.matchLevel] ?? 2) - (order[b.matchLevel] ?? 2);
+    });
+
+    res.json({ contacts: deduped, userSchool });
+  } catch (err) {
+    console.error("[find/score-contacts]", err);
+    res.status(500).json({ error: "Failed to score contacts" });
+  }
+});
+
+// ─── POST /find/generate-batch ────────────────────────────────────────────────
+// Body: { contacts: [...], assumedSchool? }
+router.post("/generate-batch", async (req, res) => {
+  const { contacts, assumedSchool } = req.body;
+  if (!Array.isArray(contacts) || contacts.length === 0) {
+    return res.status(400).json({ error: "contacts array required" });
+  }
+  if (contacts.length > 50) {
+    return res.status(400).json({ error: "Maximum 50 contacts per batch" });
+  }
+
+  try {
+    const profileRes = await query(
+      `SELECT name, school, year, major, hometown, activities,
+              recruiting_stage, target_areas, attach_resume
+       FROM profiles WHERE user_id = $1`,
+      [req.userId]
+    );
+    const up = profileRes.rows[0] || {};
+    const userSchool = assumedSchool || up.school || "";
+    const openai = getOpenAI();
+    const results = [];
+
+    for (const contact of contacts) {
+      try {
+        const schoolMatch = !!(
+          userSchool &&
+          contact.school &&
+          (userSchool.toLowerCase().includes((contact.school || "").toLowerCase().slice(0, 6)) ||
+           (contact.school || "").toLowerCase().includes(userSchool.toLowerCase().slice(0, 6)))
+        );
+        const sharedSchool = schoolMatch || (!contact.school && !!assumedSchool);
+
+        const profileData = buildProfileString(contact, sharedSchool ? userSchool : null);
+        const prompt = buildBatchEmailPrompt(profileData, up, sharedSchool);
+
+        const completion = await openai.chat.completions.create({
+          model: "gpt-4o-mini",
+          temperature: 0.7,
+          messages: [{ role: "user", content: prompt }],
+        });
+
+        const raw = completion.choices[0].message.content.replace(/```json|```/g, "").trim();
+        const result = JSON.parse(raw);
+        results.push({ contact, subject: result.subject, body: result.body, error: null });
+      } catch (err) {
+        console.error("[find/generate-batch] single contact error:", err.message);
+        results.push({ contact, subject: null, body: null, error: "Generation failed for this contact" });
+      }
+    }
+
+    res.json({ results });
+  } catch (err) {
+    console.error("[find/generate-batch]", err);
+    res.status(500).json({ error: "Batch generation failed" });
+  }
+});
+
+// ─── POST /find/save-database ─────────────────────────────────────────────────
+// Body: { filename, column_mapping, contacts }
+router.post("/save-database", async (req, res) => {
+  const { filename, column_mapping, contacts } = req.body;
+  if (!filename || !Array.isArray(contacts)) {
+    return res.status(400).json({ error: "filename and contacts are required" });
+  }
+
+  try {
+    const result = await query(
+      `INSERT INTO saved_databases (user_id, filename, column_mapping, contacts)
+       VALUES ($1, $2, $3, $4) RETURNING id, filename, uploaded_at`,
+      [req.userId, filename, JSON.stringify(column_mapping || {}), JSON.stringify(contacts)]
+    );
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error("[find/save-database]", err);
+    res.status(500).json({ error: "Failed to save database" });
+  }
+});
+
+// ─── GET /find/databases ──────────────────────────────────────────────────────
+router.get("/databases", async (req, res) => {
+  try {
+    const result = await query(
+      `SELECT id, filename, column_mapping, jsonb_array_length(contacts) AS contact_count, uploaded_at
+       FROM saved_databases WHERE user_id = $1 ORDER BY uploaded_at DESC`,
+      [req.userId]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error("[find/databases GET]", err);
+    res.status(500).json({ error: "Failed to fetch databases" });
+  }
+});
+
+// ─── GET /find/databases/:id ──────────────────────────────────────────────────
+router.get("/databases/:id", async (req, res) => {
+  try {
+    const result = await query(
+      "SELECT id, filename, column_mapping, contacts FROM saved_databases WHERE id = $1 AND user_id = $2",
+      [req.params.id, req.userId]
+    );
+    if (result.rows.length === 0) return res.status(404).json({ error: "Not found" });
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error("[find/databases/:id GET]", err);
+    res.status(500).json({ error: "Failed to fetch database" });
+  }
+});
+
+// ─── DELETE /find/databases/:id ───────────────────────────────────────────────
+router.delete("/databases/:id", async (req, res) => {
+  try {
+    await query(
+      "DELETE FROM saved_databases WHERE id = $1 AND user_id = $2",
+      [req.params.id, req.userId]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    console.error("[find/databases DELETE]", err);
+    res.status(500).json({ error: "Failed to delete database" });
+  }
+});
+
+// ─── POST /find/apollo-waitlist ───────────────────────────────────────────────
+router.post("/apollo-waitlist", async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: "email is required" });
+
+  try {
+    await query(
+      "INSERT INTO apollo_waitlist (email) VALUES ($1) ON CONFLICT DO NOTHING",
+      [email.toLowerCase().trim()]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    console.error("[find/apollo-waitlist]", err);
+    res.status(500).json({ error: "Failed to join waitlist" });
+  }
+});
+
+module.exports = router;

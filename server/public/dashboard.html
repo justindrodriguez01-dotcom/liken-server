@@ -104,10 +104,6 @@
       padding: 40px 32px 80px;
       width: 100%;
     }
-    .home-inner {
-      max-width: 860px;
-      margin: 0 auto;
-    }
     .tab-panel { display: none; }
     .tab-panel.active { display: block; }
 
@@ -133,16 +129,6 @@
       margin-bottom: 20px;
       line-height: 1.5;
     }
-
-    .greeting { margin-bottom: 28px; }
-    .greeting h1 {
-      font-size: 26px;
-      font-weight: 400;
-      letter-spacing: -0.02em;
-      color: var(--text-primary);
-      margin-bottom: 6px;
-    }
-    .greeting p { font-size: 15px; color: var(--text-secondary); }
 
     .btn-primary {
       display: inline-flex;
@@ -171,45 +157,6 @@
       text-decoration: none;
     }
     .link-subtle:hover { text-decoration: underline; }
-
-    .ext-steps {
-      list-style: none;
-      margin-top: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    .ext-steps li {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      font-size: 13px;
-      color: #374151;
-      line-height: 1.5;
-    }
-    .step-num {
-      flex-shrink: 0;
-      width: 20px;
-      height: 20px;
-      background: #d4eced;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--accent);
-      margin-top: 1px;
-    }
-
-    .profile-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .profile-label { font-size: 13px; color: var(--text-secondary); }
-    .profile-value { font-size: 13px; font-weight: 500; color: var(--text-primary); }
-    .profile-divider { border: none; border-top: 1px solid #f3f4f6; margin: 12px 0; }
 
     #loading-state {
       text-align: center;
@@ -466,14 +413,11 @@
       line-height: 1.6;
     }
 
-    /* Stage badge colors: Drafted=gray, Contacted=blue, Replied=green, Meeting=purple, Offer=gold */
     .badge-drafted    { background: #f3f4f6; color: #374151; }
     .badge-contacted  { background: #d4eced; color: #0A5F63; }
     .badge-replied    { background: #d1fae5; color: #065f46; }
     .badge-meeting    { background: #ede9fe; color: #5b21b6; }
     .badge-offer      { background: #fef3c7; color: #92400e; }
-    .badge-source-ext    { background: #ede9fe; color: #5b21b6; }
-    .badge-source-manual { background: #f3f4f6; color: #6b7280; }
 
     .action-link {
       background: none;
@@ -598,7 +542,6 @@
       margin-left: 8px;
     }
 
-    /* Inline stage dropdown — pill-shaped, no browser chrome */
     .stage-select {
       border: none;
       border-radius: 999px;
@@ -621,7 +564,6 @@
     .stage-select-badge-meeting   { background: #ede9fe; color: #5b21b6; }
     .stage-select-badge-offer     { background: #fef3c7; color: #92400e; }
 
-    /* Source label (date column sub-text) */
     .source-label {
       display: block;
       font-size: 10px;
@@ -629,6 +571,556 @@
       color: var(--text-muted);
       margin-top: 2px;
       letter-spacing: 0;
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       FIND PAGE STYLES
+    ══════════════════════════════════════════════════════════════ */
+
+    .find-inner {
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    .find-header {
+      margin-bottom: 28px;
+    }
+    .find-header h2 {
+      font-size: 24px;
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      margin-bottom: 6px;
+    }
+    .find-header p {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    /* Gmail connect notice bar */
+    .gmail-notice-bar {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: #f0fdf4;
+      border: 1px solid #86efac;
+      border-radius: 8px;
+      padding: 10px 16px;
+      margin-bottom: 20px;
+      font-size: 13px;
+      color: #166534;
+    }
+    .gmail-notice-bar.show { display: flex; }
+
+    /* Option cards */
+    .find-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px 28px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .find-card-disabled {
+      opacity: 0.55;
+      pointer-events: none;
+    }
+    .find-card-disabled .apollo-notify-section {
+      pointer-events: all;
+      opacity: 1;
+    }
+    .find-option-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+    .find-card-title {
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .find-card-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+    .badge-soon {
+      display: inline-block;
+      background: #f3f4f6;
+      color: #6b7280;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      border-radius: 999px;
+      padding: 3px 9px;
+    }
+
+    /* URL row */
+    .find-url-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .find-input {
+      flex: 1;
+      padding: 9px 12px;
+      border: 1px solid var(--border-strong);
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 13px;
+      color: var(--text-primary);
+      background: #fff;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .find-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-dim);
+    }
+
+    /* LinkedIn result */
+    .linkedin-result {
+      margin-top: 18px;
+      padding-top: 18px;
+      border-top: 1px solid var(--border);
+    }
+    .linkedin-result-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+    .linkedin-profile-text {
+      background: #fafaf9;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px 14px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      white-space: pre-wrap;
+      max-height: 130px;
+      overflow-y: auto;
+      margin-bottom: 14px;
+    }
+    .linkedin-email-section {
+      background: #fafaf9;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 14px;
+      margin-top: 12px;
+    }
+    .linkedin-email-subject {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+    .linkedin-email-body-ta {
+      width: 100%;
+      min-height: 120px;
+      border: none;
+      background: transparent;
+      font-family: inherit;
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--text-primary);
+      resize: vertical;
+      outline: none;
+    }
+    .linkedin-email-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      align-items: center;
+    }
+
+    /* Upload zone */
+    .upload-zone {
+      border: 2px dashed var(--border-strong);
+      border-radius: 8px;
+      padding: 28px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .upload-zone:hover, .upload-zone.dragover {
+      border-color: var(--accent);
+      background: var(--accent-dim);
+    }
+    .upload-zone-icon {
+      font-size: 22px;
+      margin-bottom: 8px;
+    }
+    .upload-zone-text {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+    .upload-zone-text strong {
+      color: var(--accent);
+    }
+    .upload-zone-hint {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* Saved DB chips */
+    .saved-dbs-section {
+      margin-top: 14px;
+    }
+    .saved-dbs-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+    .saved-dbs-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .saved-db-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      background: var(--accent-dim);
+      border: 1px solid rgba(13,115,119,0.2);
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--accent);
+      cursor: pointer;
+      transition: background 0.15s;
+      white-space: nowrap;
+    }
+    .saved-db-chip:hover { background: rgba(13,115,119,0.14); }
+    .saved-db-chip .chip-count {
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+    .saved-db-chip .chip-delete {
+      color: var(--text-muted);
+      font-size: 13px;
+      line-height: 1;
+      cursor: pointer;
+      padding: 0 0 0 2px;
+    }
+    .saved-db-chip .chip-delete:hover { color: #ef4444; }
+
+    /* Apollo notify */
+    .apollo-notify-section {
+      pointer-events: all;
+      opacity: 1;
+    }
+    .apollo-notify-form {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .apollo-notify-confirm {
+      font-size: 13px;
+      color: #059669;
+      font-weight: 500;
+      margin-top: 10px;
+      display: none;
+    }
+
+    /* ── CSV Flow Panel ── */
+    .csv-flow-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px;
+      margin-top: 4px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .flow-section-title {
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      margin-bottom: 4px;
+    }
+    .flow-section-sub {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+    .section-divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 22px 0;
+    }
+
+    /* Column mapping */
+    .col-map-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+    .col-map-field label {
+      display: block;
+      font-size: 10.5px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+    }
+    .col-map-field select {
+      width: 100%;
+      padding: 7px 10px;
+      border: 1px solid var(--border-strong);
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 12px;
+      color: var(--text-primary);
+      background: #fff;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .col-map-field select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px var(--accent-dim);
+    }
+
+    /* Contact list */
+    .contacts-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      gap: 10px;
+    }
+    .contacts-count {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    .contacts-toolbar-right {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 500;
+      border-radius: 6px;
+      border: 1px solid var(--border-strong);
+      background: none;
+      color: #374151;
+      font-family: inherit;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .btn-sm:hover { border-color: #9ca3af; background: #f9f9f8; }
+
+    .contact-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 16px;
+      max-height: 420px;
+      overflow-y: auto;
+    }
+    .contact-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      background: #fafaf9;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: border-color 0.1s, background 0.1s;
+    }
+    .contact-card:hover { border-color: #bbb; }
+    .contact-card.selected {
+      border-color: var(--accent);
+      background: var(--accent-dim);
+    }
+    .contact-card.already-contacted {
+      opacity: 0.6;
+    }
+    .contact-checkbox {
+      width: 15px;
+      height: 15px;
+      flex-shrink: 0;
+      cursor: pointer;
+      accent-color: var(--accent);
+    }
+    .contact-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .contact-name {
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .contact-meta {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-top: 1px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .contact-badges {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .match-badge {
+      padding: 2px 9px;
+      border-radius: 999px;
+      font-size: 10.5px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+    }
+    .match-badge-high   { background: #d4eced; color: #0A5F63; }
+    .match-badge-medium { background: #fef3c7; color: #92400e; }
+    .match-badge-low    { background: #f3f4f6; color: #6b7280; }
+    .already-tag {
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--text-muted);
+      background: #f3f4f6;
+      border-radius: 4px;
+      padding: 2px 6px;
+      white-space: nowrap;
+    }
+
+    /* Batch progress */
+    .batch-progress {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      background: #f3f4f6;
+      border-radius: 8px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 16px;
+    }
+
+    /* Email cards */
+    .email-cards {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .email-card {
+      background: #fafaf9;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 18px;
+    }
+    .email-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+    .email-card-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .email-card-meta {
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+    .email-card-subject {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+    .email-card-body {
+      width: 100%;
+      min-height: 110px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      font-family: inherit;
+      font-size: 12px;
+      line-height: 1.6;
+      color: var(--text-primary);
+      background: #fff;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .email-card-body:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px var(--accent-dim);
+    }
+    .email-card-saving {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 6px;
+      min-height: 16px;
+    }
+    .email-card-saving.saved { color: #059669; }
+    .email-card-saving.error { color: #ef4444; }
+
+    /* Flow controls row */
+    .flow-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .skip-preview-label {
+      font-size: 12px;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      margin-left: auto;
+    }
+    .save-name-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-top: 16px;
+    }
+    .save-name-input {
+      flex: 1;
+      padding: 7px 10px;
+      border: 1px solid var(--border-strong);
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 13px;
+      color: var(--text-primary);
+      background: #fff;
+      outline: none;
+    }
+    .save-name-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px var(--accent-dim);
     }
   </style>
 </head>
@@ -643,8 +1135,9 @@
   </nav>
 
   <div class="tab-bar">
-    <button class="tab-btn active" data-tab="home">Home</button>
+    <button class="tab-btn active" data-tab="find">Find</button>
     <button class="tab-btn" data-tab="tracker">Outreach Tracker</button>
+    <button class="tab-btn" data-tab="settings">Settings</button>
   </div>
 
   <div class="page">
@@ -652,89 +1145,179 @@
 
     <div id="main-content">
 
-      <!-- ── HOME TAB ── -->
-      <div class="tab-panel active" id="tab-home">
-      <div class="home-inner">
+      <!-- ══════════════════════════════════════════════
+           FIND TAB
+      ══════════════════════════════════════════════ -->
+      <div class="tab-panel active" id="tab-find">
+      <div class="find-inner">
 
-        <div class="greeting">
-          <h1 id="welcome-heading">Welcome to ColdMatch.</h1>
-          <p>Your profile is set up. Install the extension to start scoring profiles.</p>
+        <div class="find-header">
+          <h2>Find People</h2>
+          <p>Score alumni contacts, generate personalized outreach, and save Gmail drafts in bulk.</p>
         </div>
 
-        <!-- Follow-up reminders (populated by JS) -->
-        <div class="reminders-section hidden" id="reminders-section">
-          <div class="reminders-title">Follow-ups due</div>
-          <div id="reminders-list"></div>
+        <!-- Gmail notice (shown when not connected) -->
+        <div class="gmail-notice-bar" id="gmail-notice-bar">
+          <span>Connect Gmail to save email drafts directly.</span>
+          <button class="btn-sm" onclick="startGmailOAuth()">Connect Gmail</button>
         </div>
 
-        <div class="card">
-          <div class="card-title">Install the Chrome extension</div>
-          <div class="card-sub">Open LinkedIn profiles and get instant match scores and personalized cold emails.</div>
-          <a href="#" class="btn-primary" id="download-btn">Add to Chrome</a>
-          <ul class="ext-steps">
-            <li><span class="step-num">1</span> Download and unzip the extension file.</li>
-            <li><span class="step-num">2</span> Go to <strong>chrome://extensions</strong> and enable Developer mode.</li>
-            <li><span class="step-num">3</span> Click "Load unpacked" and select the unzipped folder.</li>
-            <li><span class="step-num">4</span> Open any LinkedIn profile and click the ColdMatch icon.</li>
-          </ul>
-        </div>
-
-        <!-- Scope upgrade banner (shown when gmail.readonly not granted) -->
-        <div class="scope-banner" id="scope-banner-home">
-          <div class="scope-banner-text">
-            Reconnect Gmail to enable reply tracking
-            <br><span>Your current Gmail connection doesn't have permission to check for replies.</span>
+        <!-- Option A: LinkedIn -->
+        <div class="find-card" id="option-a-card">
+          <div class="find-option-label">Option A</div>
+          <div class="find-card-title">LinkedIn Profile</div>
+          <div class="find-card-desc">Paste a LinkedIn profile URL to scrape the profile and generate a personalized cold email.</div>
+          <div class="find-url-row">
+            <input type="text" id="linkedin-url-input" class="find-input" placeholder="https://linkedin.com/in/…" />
+            <button class="btn-primary" id="linkedin-load-btn" onclick="loadLinkedIn()">Load Profile</button>
           </div>
-          <button class="btn-scope-reconnect" onclick="startGmailOAuth()">Reconnect Gmail</button>
-        </div>
-
-        <div class="card" id="gmail-card">
-          <div class="card-title">Connect Gmail</div>
-          <div class="card-sub">Save drafts directly to Gmail from the ColdMatch extension.</div>
-          <div id="gmail-not-connected">
-            <button class="btn-primary" id="connect-gmail-btn">Connect Gmail</button>
-          </div>
-          <div id="gmail-connected" style="display:none;align-items:center;gap:16px;">
-            <span style="color:#059669;font-weight:500;font-size:14px;">Gmail connected</span>
-            <button class="btn-ghost" id="reconnect-gmail-btn" style="font-size:12px;padding:4px 10px;">Reconnect</button>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-title">Your profile</div>
-          <div id="profile-details"></div>
-          <hr class="profile-divider" id="resume-upload-divider" style="display:none;">
-          <div class="profile-row" id="resume-upload-row" style="display:none;">
-            <div style="font-weight:500;font-size:13px;color:var(--text-primary);">Resume</div>
-            <div id="resume-upload-status" style="display:flex;align-items:center;gap:10px;"></div>
-          </div>
-          <input type="file" id="resume-file-input" accept=".pdf" style="display:none;">
-          <hr class="profile-divider" id="resume-toggle-divider" style="display:none;">
-          <div class="profile-row" id="resume-toggle-row" style="display:none;">
-            <div>
-              <div class="profile-label" style="font-weight:500;color:var(--text-primary);">Attach resume to emails</div>
-              <div style="font-size:12px;color:var(--text-muted);margin-top:3px;">Your resume will be attached to every Gmail draft.</div>
-              <p id="resume-required-warning" style="display:none;font-size:12px;color:#d97706;margin-top:4px;">Upload a resume above to enable this feature.</p>
+          <div id="linkedin-result" class="linkedin-result" style="display:none;">
+            <div id="linkedin-status" style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;"></div>
+            <div id="linkedin-profile-wrap" style="display:none;">
+              <div class="linkedin-result-label">Profile summary</div>
+              <div class="linkedin-profile-text" id="linkedin-profile-text"></div>
+              <div class="flow-controls">
+                <button class="btn-primary" id="linkedin-gen-btn" onclick="generateLinkedInEmail()">Generate email</button>
+              </div>
             </div>
-            <label class="toggle-switch">
-              <input type="checkbox" id="attach-resume-toggle">
-              <span class="toggle-slider"></span>
-            </label>
+            <div id="linkedin-email-wrap" style="display:none;" class="linkedin-email-section">
+              <div class="linkedin-email-subject" id="linkedin-email-subject"></div>
+              <textarea class="linkedin-email-body-ta" id="linkedin-email-body"></textarea>
+              <div class="linkedin-email-actions">
+                <button class="btn-primary" id="linkedin-draft-btn" onclick="saveLinkedInDraft()">Save to Gmail drafts</button>
+                <button class="btn-ghost" id="linkedin-copy-btn" onclick="copyLinkedInEmail()">Copy</button>
+                <span id="linkedin-copy-confirm" style="font-size:12px;color:#059669;display:none;margin-left:4px;">Copied!</span>
+                <span id="linkedin-draft-status" style="font-size:12px;color:var(--text-muted);margin-left:4px;"></span>
+              </div>
+            </div>
           </div>
-          <a href="/onboarding" class="link-subtle" style="margin-top:16px;display:inline-block;">Edit profile</a>
         </div>
-      </div><!-- /home-inner -->
-      </div><!-- /tab-home -->
 
-      <!-- ── TRACKER TAB ── -->
+        <!-- Option B: CSV Upload -->
+        <div class="find-card" id="option-b-card">
+          <div class="find-option-label">Option B</div>
+          <div class="find-card-title">Alumni Database</div>
+          <div class="find-card-desc">Upload a CSV or Excel file of contacts. ColdMatch will score them by fit, let you select who to reach out to, and generate personalized emails in bulk.</div>
+
+          <div class="upload-zone" id="upload-zone">
+            <div class="upload-zone-icon">📄</div>
+            <div class="upload-zone-text">
+              Drag and drop your file here, or <strong id="upload-browse-btn" style="cursor:pointer;">browse</strong>
+            </div>
+            <div class="upload-zone-hint">CSV or Excel (.xlsx, .xls) — up to 20 MB</div>
+          </div>
+          <input type="file" id="csv-file-input" accept=".csv,.xlsx,.xls" style="display:none;">
+
+          <div class="saved-dbs-section" id="saved-dbs-section" style="display:none;">
+            <div class="saved-dbs-label">Saved databases</div>
+            <div class="saved-dbs-row" id="saved-dbs-row"></div>
+          </div>
+        </div>
+
+        <!-- Option C: Apollo -->
+        <div class="find-card find-card-disabled" id="option-c-card">
+          <div class="find-option-label">Option C</div>
+          <div class="find-card-title">
+            Search for People
+            <span class="badge-soon">Coming Soon</span>
+          </div>
+          <div class="find-card-desc">Search for contacts by firm, school, or role using Apollo. Automatically build targeted alumni lists without uploading a CSV.</div>
+          <div class="apollo-notify-section">
+            <div style="font-size:13px;color:var(--text-secondary);">Get notified when this launches:</div>
+            <div class="apollo-notify-form">
+              <input type="email" id="apollo-email-input" class="find-input" placeholder="you@email.com" style="flex:1;" />
+              <button class="btn-primary" id="apollo-notify-btn" onclick="submitApolloNotify()">Notify me</button>
+            </div>
+            <div class="apollo-notify-confirm" id="apollo-notify-confirm">You're on the list!</div>
+          </div>
+        </div>
+
+        <!-- CSV Flow Panel (shown after upload) -->
+        <div class="csv-flow-panel" id="csv-flow-panel" style="display:none;">
+
+          <!-- Step 1: Column mapping -->
+          <div id="csv-mapping-step">
+            <div class="flow-section-title" id="csv-filename-title">Map columns</div>
+            <div class="flow-section-sub">Tell ColdMatch which column is which. Only Name is required.</div>
+            <div class="col-map-grid" id="col-map-grid"></div>
+            <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px;" id="csv-preview-count"></div>
+            <div class="flow-controls">
+              <button class="btn-primary" id="score-contacts-btn" onclick="scoreContacts()">Score contacts</button>
+              <button class="btn-ghost" id="cancel-csv-btn" onclick="resetCsvFlow()">Cancel</button>
+            </div>
+          </div>
+
+          <!-- Step 2: Scored contacts -->
+          <div id="csv-contacts-step" style="display:none;">
+            <div class="flow-section-title">Contacts scored</div>
+            <div class="flow-section-sub" id="contacts-step-sub"></div>
+            <div class="contacts-toolbar">
+              <span class="contacts-count" id="contacts-count-label"></span>
+              <div class="contacts-toolbar-right">
+                <button class="btn-sm" id="select-high-btn" onclick="selectAllHigh()">Select all High</button>
+                <button class="btn-sm" id="select-all-btn" onclick="selectAllContacts()">Select all</button>
+                <button class="btn-sm" id="deselect-all-btn" onclick="deselectAll()">Deselect all</button>
+              </div>
+            </div>
+            <div class="contact-list" id="contact-list"></div>
+            <div class="flow-controls">
+              <button class="btn-primary" id="generate-batch-btn" onclick="generateBatch()" disabled>Generate emails for selected</button>
+              <button class="btn-ghost" onclick="resetCsvFlow()">Start over</button>
+              <label class="skip-preview-label">
+                <input type="checkbox" id="skip-preview-toggle" onchange="toggleSkipPreview(this.checked)">
+                Skip preview, save directly
+              </label>
+            </div>
+          </div>
+
+          <!-- Step 3: Generated emails -->
+          <div id="csv-emails-step" style="display:none;">
+            <div class="flow-section-title">Generated emails</div>
+            <div class="flow-section-sub" id="emails-step-sub"></div>
+            <div class="batch-progress" id="batch-progress" style="display:none;">
+              <span class="spinner"></span>
+              <span id="batch-progress-text">Generating…</span>
+            </div>
+            <div class="email-cards" id="email-cards"></div>
+            <div class="flow-controls" id="save-all-controls" style="display:none;">
+              <button class="btn-primary" id="save-all-btn" onclick="saveAllDrafts()">Save all to Gmail drafts</button>
+              <button class="btn-ghost" onclick="goBackToContacts()">Back to contacts</button>
+            </div>
+            <hr class="section-divider" id="save-db-divider" style="display:none;">
+            <div id="save-db-section" style="display:none;">
+              <div class="flow-section-title" style="font-size:14px;">Save this database for later</div>
+              <div class="flow-section-sub" style="margin-bottom:12px;">Save these contacts so you can load them again without re-uploading.</div>
+              <div class="save-name-row">
+                <input type="text" class="save-name-input" id="save-db-name-input" placeholder="e.g. Harvard Finance Alumni 2024" />
+                <button class="btn-primary" id="save-db-btn" onclick="saveDatabaseForReuse()">Save database</button>
+              </div>
+              <div id="save-db-status" style="font-size:12px;color:var(--text-muted);margin-top:6px;"></div>
+            </div>
+          </div>
+
+        </div><!-- /csv-flow-panel -->
+
+      </div><!-- /find-inner -->
+      </div><!-- /tab-find -->
+
+      <!-- ══════════════════════════════════════════════
+           TRACKER TAB
+      ══════════════════════════════════════════════ -->
       <div class="tab-panel" id="tab-tracker">
-        <!-- Scope upgrade banner (tracker tab) -->
+
+        <!-- Scope upgrade banner -->
         <div class="scope-banner" id="scope-banner-tracker">
           <div class="scope-banner-text">
             Reconnect Gmail to enable reply tracking
             <br><span>Your current Gmail connection doesn't have permission to check for replies.</span>
           </div>
           <button class="btn-scope-reconnect" onclick="startGmailOAuth()">Reconnect Gmail</button>
+        </div>
+
+        <!-- Follow-up reminders -->
+        <div class="reminders-section hidden" id="reminders-section">
+          <div class="reminders-title">Follow-ups due</div>
+          <div id="reminders-list"></div>
         </div>
 
         <div class="tracker-header">
@@ -825,6 +1408,7 @@
     const token = localStorage.getItem('cm_token');
     if (!token) window.location.href = '/login';
 
+    // ── Utilities ──────────────────────────────────────────────────────────────
     function toTitleCase(str) {
       if (!str) return '';
       return str.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
@@ -832,8 +1416,7 @@
 
     function formatDate(dateStr) {
       if (!dateStr) return '—';
-      // pg returns DATE columns as ISO strings like "2026-04-06T00:00:00.000Z" — take only the date part
-      const datePart = String(dateStr).split('T')[0]; // "2026-04-06"
+      const datePart = String(dateStr).split('T')[0];
       const [y, m, d] = datePart.split('-').map(Number);
       if (!y || !m || !d) return '—';
       return new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -850,18 +1433,18 @@
       return map[stage] || 'badge-drafted';
     }
 
-    function replyBadgeClass(status) {
-      const map = {
-        'Awaiting Reply': 'badge-awaiting',
-        'Replied': 'badge-replied',
-        'No Response': 'badge-no-response',
-      };
-      return map[status] || 'badge-awaiting';
+    function escHtml(str) {
+      return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
 
-    // ── Tab switching ──
+    // ── Tab switching ──────────────────────────────────────────────────────────
     document.querySelectorAll('.tab-btn').forEach(btn => {
       btn.addEventListener('click', () => {
+        if (btn.dataset.tab === 'settings') {
+          window.location.href = '/onboarding';
+          return;
+        }
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
         btn.classList.add('active');
@@ -870,13 +1453,15 @@
       });
     });
 
-    // ── Nav / logout ──
+    // ── Nav / logout ───────────────────────────────────────────────────────────
     document.getElementById('logout-btn').addEventListener('click', () => {
       localStorage.removeItem('cm_token');
       window.location.href = '/';
     });
 
-    // ── Load dashboard (profile + home) ──
+    // ── Load dashboard ─────────────────────────────────────────────────────────
+    let userProfile = null;
+
     async function loadDashboard() {
       try {
         const res = await fetch('/profile', {
@@ -887,131 +1472,38 @@
           window.location.href = '/login';
           return;
         }
-        const profile = res.ok ? await res.json() : null;
-
-        if (profile?.name) {
-          const firstName = toTitleCase(profile.name.split(' ')[0]);
-          document.getElementById('welcome-heading').textContent = `Welcome, ${firstName}.`;
-        }
-
-        const details = document.getElementById('profile-details');
-        if (profile) {
-          const rows = [
-            ['Name',             toTitleCase(profile.name)],
-            ['School',           toTitleCase(profile.school)],
-            ['Major',            toTitleCase(profile.major)],
-            ['Goal',             profile.goal],
-            ['Recruiting stage', profile.recruiting_stage],
-            ['Target areas',     profile.target_areas],
-          ].filter(([, v]) => v);
-          details.innerHTML = rows.map(([label, value], i) => `
-            ${i > 0 ? '<hr class="profile-divider">' : ''}
-            <div class="profile-row">
-              <span class="profile-label">${label}</span>
-              <span class="profile-value">${value}</span>
-            </div>
-          `).join('');
-        } else {
-          details.innerHTML = '<p style="font-size:13px;color:#6b7280;margin-bottom:16px;">No profile found.</p>';
-        }
+        userProfile = res.ok ? await res.json() : null;
 
         try {
           const payload = JSON.parse(atob(token.split('.')[1]));
           if (payload.email) document.getElementById('nav-email').textContent = payload.email;
         } catch (_) {}
 
-        if (profile) {
-          const hasResume = !!profile.has_resume;
-          document.getElementById('resume-upload-divider').style.display = '';
-          document.getElementById('resume-upload-row').style.display = '';
-          renderResumeStatus(hasResume);
-          document.getElementById('resume-toggle-divider').style.display = '';
-          document.getElementById('resume-toggle-row').style.display = '';
-          const toggleInput = document.getElementById('attach-resume-toggle');
-          toggleInput.checked = !!profile.attach_resume;
-          toggleInput.disabled = !hasResume;
-          if (profile.attach_resume && !hasResume) {
-            document.getElementById('resume-required-warning').style.display = '';
-          }
-        }
-
         document.getElementById('loading-state').style.display = 'none';
         document.getElementById('main-content').style.display = 'block';
 
-        // Load follow-up reminders
+        // Gmail connect notice bar
+        const gmailConnected = localStorage.getItem('gmail_connected') === 'true';
+        if (!gmailConnected) {
+          document.getElementById('gmail-notice-bar').classList.add('show');
+        }
+
         loadFollowupReminders();
+        loadSavedDatabases();
 
       } catch (err) {
         document.getElementById('loading-state').textContent = 'Failed to load. Please refresh.';
       }
     }
 
-    function renderResumeStatus(hasResume) {
-      const statusEl = document.getElementById('resume-upload-status');
-      if (!statusEl) return;
-      if (hasResume) {
-        statusEl.innerHTML =
-          '<span style="color:#059669;font-size:13px;font-weight:500;">Resume uploaded ✓</span>' +
-          '<a href="#" class="link-subtle" id="replace-resume-link" style="font-size:12px;">Replace</a>';
-        document.getElementById('replace-resume-link').addEventListener('click', (e) => {
-          e.preventDefault();
-          document.getElementById('resume-file-input').click();
-        });
-      } else {
-        statusEl.innerHTML =
-          '<button class="btn-ghost" id="upload-resume-btn" style="font-size:12px;padding:5px 12px;">Upload resume</button>';
-        document.getElementById('upload-resume-btn').addEventListener('click', () => {
-          document.getElementById('resume-file-input').click();
-        });
-      }
-    }
-
-    document.getElementById('resume-file-input').addEventListener('change', async function () {
-      const file = this.files[0];
-      if (!file) return;
-      const statusEl = document.getElementById('resume-upload-status');
-      statusEl.innerHTML = '<span style="font-size:13px;color:var(--text-muted);">Uploading…</span>';
-      const formData = new FormData();
-      formData.append('resume', file);
-      try {
-        const res = await fetch('/profile/parse-resume', {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${token}` },
-          body: formData,
-        });
-        if (!res.ok) throw new Error('Upload failed');
-        renderResumeStatus(true);
-        const tog = document.getElementById('attach-resume-toggle');
-        tog.disabled = false;
-        document.getElementById('resume-required-warning').style.display = 'none';
-      } catch (_) {
-        statusEl.innerHTML = '<span style="font-size:13px;color:#ef4444;">Upload failed. Try again.</span>';
-        setTimeout(() => renderResumeStatus(false), 2000);
-      }
-      this.value = '';
-    });
-
-    document.getElementById('attach-resume-toggle').addEventListener('change', async (e) => {
-      try {
-        await fetch('/profile', {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ attach_resume: e.target.checked }),
-        });
-      } catch (_) {
-        e.target.checked = !e.target.checked;
-      }
-    });
-
-    // Gmail OAuth
+    // ── Gmail OAuth ────────────────────────────────────────────────────────────
     const gmailParam = new URLSearchParams(window.location.search).get('gmail');
     if (gmailParam === 'connected') {
       localStorage.setItem('gmail_connected', 'true');
       history.replaceState(null, '', '/dashboard');
     }
     if (localStorage.getItem('gmail_connected') === 'true') {
-      document.getElementById('gmail-not-connected').style.display = 'none';
-      document.getElementById('gmail-connected').style.display = 'flex';
+      document.getElementById('gmail-notice-bar').classList.remove('show');
     }
 
     async function startGmailOAuth() {
@@ -1026,10 +1518,6 @@
       }
     }
 
-    document.getElementById('connect-gmail-btn').addEventListener('click', startGmailOAuth);
-    document.getElementById('reconnect-gmail-btn').addEventListener('click', startGmailOAuth);
-
-    // Check Gmail scope — show upgrade banner if gmail.readonly is missing
     async function checkGmailScope() {
       try {
         const res = await fetch('/auth/gmail/status', {
@@ -1037,16 +1525,14 @@
         });
         if (!res.ok) return;
         const data = await res.json();
-        // Only show banner if connected but missing readonly
         if (data.connected && !data.hasReadonly) {
-          document.getElementById('scope-banner-home').classList.add('visible');
           document.getElementById('scope-banner-tracker').classList.add('visible');
         }
       } catch (_) {}
     }
     checkGmailScope();
 
-    // ── Follow-up reminders ──
+    // ── Follow-up reminders ────────────────────────────────────────────────────
     let outreachData = [];
 
     async function loadFollowupReminders() {
@@ -1068,27 +1554,20 @@
       );
       const section = document.getElementById('reminders-section');
       const list = document.getElementById('reminders-list');
-      if (due.length === 0) {
-        section.classList.add('hidden');
-        return;
-      }
+      if (due.length === 0) { section.classList.add('hidden'); return; }
       section.classList.remove('hidden');
       list.innerHTML = due.map(e => `
         <div class="reminder-item">
           <div class="reminder-info">
-            <div class="reminder-name">${e.name}</div>
+            <div class="reminder-name">${escHtml(e.name)}</div>
             <div class="reminder-meta">${[e.firm, e.role].filter(Boolean).join(' · ') || 'No firm/role'} · Follow-up was ${formatDate(e.follow_up_date)}</div>
           </div>
-          <button class="btn-followup" onclick="openFollowupModal('${e.id}', '${escHtml(e.name)}')">Generate follow-up</button>
+          <button class="btn-followup" onclick="openFollowupModal('${e.id}', '${escHtml(e.name).replace(/'/g,"\\'")}')">Generate follow-up</button>
         </div>
       `).join('');
     }
 
-    function escHtml(str) {
-      return (str || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
-    }
-
-    // ── Outreach table ──
+    // ── Outreach table ─────────────────────────────────────────────────────────
     async function loadOutreach() {
       try {
         const res = await fetch('/outreach', {
@@ -1106,7 +1585,7 @@
         container.innerHTML = `
           <div class="tracker-empty">
             No outreach tracked yet.<br>
-            <span style="font-size:13px;">Save a draft from the extension to get started.</span>
+            <span style="font-size:13px;">Save a draft from the extension or add one manually.</span>
           </div>`;
         return;
       }
@@ -1127,13 +1606,13 @@
             ${outreachData.map(e => `
               <tr>
                 <td>
-                  <span class="cell-name" title="${escHtml(e.name)}">${e.name}</span>
+                  <span class="cell-name" title="${escHtml(e.name)}">${escHtml(e.name)}</span>
                 </td>
                 <td class="inline-edit-cell" onclick="startInlineEdit(this,'${e.id}','firm','text')" title="Click to edit">
-                  <span class="cell-text" title="${escHtml(e.firm)}">${e.firm || '<span style=\'color:var(--text-muted)\'>—</span>'}</span>
+                  <span class="cell-text" title="${escHtml(e.firm)}">${e.firm ? escHtml(e.firm) : '<span style="color:var(--text-muted)">—</span>'}</span>
                 </td>
                 <td>
-                  <span class="cell-text" style="color:var(--text-secondary);" title="${escHtml(e.role)}">${e.role || '<span style=\'color:var(--text-muted)\'>—</span>'}</span>
+                  <span class="cell-text" style="color:var(--text-secondary);" title="${escHtml(e.role)}">${e.role ? escHtml(e.role) : '<span style="color:var(--text-muted)">—</span>'}</span>
                 </td>
                 <td>
                   <span class="cell-date-main">${formatDate(e.date_added)}</span>
@@ -1147,10 +1626,10 @@
                   </select>
                 </td>
                 <td class="inline-edit-cell" onclick="startInlineDateEdit(this,'${e.id}','follow_up_date')" title="Click to edit">
-                  <span class="cell-text" style="font-size:13px;">${formatDate(e.follow_up_date) !== '—' ? formatDate(e.follow_up_date) : '<span style=\'color:var(--text-muted)\'>—</span>'}</span>
+                  <span class="cell-text" style="font-size:13px;">${formatDate(e.follow_up_date) !== '—' ? formatDate(e.follow_up_date) : '<span style="color:var(--text-muted)">—</span>'}</span>
                 </td>
                 <td class="inline-edit-cell" onclick="startInlineEdit(this,'${e.id}','notes','text')" title="Click to edit">
-                  <span class="cell-text" title="${escHtml(e.notes)}">${e.notes || '<span style=\'color:var(--text-muted)\'>—</span>'}</span>
+                  <span class="cell-text" title="${escHtml(e.notes)}">${e.notes ? escHtml(e.notes) : '<span style="color:var(--text-muted)">—</span>'}</span>
                 </td>
                 <td>
                   <button class="action-link" onclick="deleteEntry('${e.id}')">Delete</button>
@@ -1162,7 +1641,7 @@
       `;
     }
 
-    // ── Inline editing helpers ──
+    // ── Inline editing ─────────────────────────────────────────────────────────
     async function patchEntry(id, field, value) {
       try {
         const res = await fetch(`/outreach/${id}`, {
@@ -1178,7 +1657,7 @@
     }
 
     function startInlineEdit(cell, id, field, type) {
-      if (cell.querySelector('input')) return; // already editing
+      if (cell.querySelector('input')) return;
       const current = outreachData.find(e => e.id === id)?.[field] || '';
       cell.innerHTML = `<input class="inline-edit-input" type="${type}" value="${escHtml(current)}" />`;
       const input = cell.querySelector('input');
@@ -1215,7 +1694,7 @@
       });
     }
 
-    // ── Check replies ──
+    // ── Check replies ──────────────────────────────────────────────────────────
     document.getElementById('check-replies-btn').addEventListener('click', async () => {
       const btn = document.getElementById('check-replies-btn');
       btn.disabled = true;
@@ -1226,9 +1705,7 @@
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
-        if (data.updated > 0) {
-          await loadOutreach();
-        }
+        if (data.updated > 0) await loadOutreach();
         btn.textContent = data.updated > 0 ? `${data.updated} updated` : 'Up to date';
       } catch (_) {
         btn.textContent = 'Check for replies';
@@ -1237,7 +1714,7 @@
       setTimeout(() => { btn.textContent = 'Check for replies'; }, 3000);
     });
 
-    // ── Contact modal ──
+    // ── Contact modal ──────────────────────────────────────────────────────────
     let editingId = null;
 
     document.getElementById('add-contact-btn').addEventListener('click', () => {
@@ -1269,11 +1746,11 @@
       }
       const payload = {
         name,
-        firm:            document.getElementById('cm-firm').value.trim() || null,
-        role:            document.getElementById('cm-role').value.trim() || null,
-        stage:           document.getElementById('cm-stage').value,
-        follow_up_date:  document.getElementById('cm-followup-date').value || null,
-        notes:           document.getElementById('cm-notes').value.trim() || null,
+        firm:           document.getElementById('cm-firm').value.trim() || null,
+        role:           document.getElementById('cm-role').value.trim() || null,
+        stage:          document.getElementById('cm-stage').value,
+        follow_up_date: document.getElementById('cm-followup-date').value || null,
+        notes:          document.getElementById('cm-notes').value.trim() || null,
       };
       const saveBtn = document.getElementById('contact-modal-save');
       saveBtn.disabled = true;
@@ -1295,7 +1772,6 @@
 
     async function updateStage(id, selectEl) {
       const stage = selectEl.value;
-      // Update badge color class
       selectEl.className = 'stage-select stage-select-' + stageBadgeClass(stage);
       try {
         await fetch(`/outreach/${id}`, {
@@ -1320,7 +1796,7 @@
       } catch (_) {}
     }
 
-    // ── Follow-up modal ──
+    // ── Follow-up modal ────────────────────────────────────────────────────────
     let followupSubject = '';
     let followupBody    = '';
     let followupEntryId = null;
@@ -1394,6 +1870,724 @@
       });
     });
 
+    // ══════════════════════════════════════════════════════════════════════════
+    // FIND PAGE — LinkedIn flow
+    // ══════════════════════════════════════════════════════════════════════════
+
+    let linkedinScrapedText = '';
+    let linkedinEmailSubject = '';
+    let linkedinEmailBody = '';
+
+    async function loadLinkedIn() {
+      const url = document.getElementById('linkedin-url-input').value.trim();
+      if (!url) return;
+
+      const btn = document.getElementById('linkedin-load-btn');
+      btn.disabled = true;
+      btn.textContent = 'Loading…';
+
+      const resultEl = document.getElementById('linkedin-result');
+      const statusEl = document.getElementById('linkedin-status');
+      const profileWrap = document.getElementById('linkedin-profile-wrap');
+      const emailWrap = document.getElementById('linkedin-email-wrap');
+
+      resultEl.style.display = '';
+      statusEl.textContent = 'Fetching profile…';
+      profileWrap.style.display = 'none';
+      emailWrap.style.display = 'none';
+
+      try {
+        const res = await fetch('/find/scrape', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ url }),
+        });
+        const data = await res.json();
+
+        if (!res.ok || data.error) {
+          statusEl.textContent = data.error || 'Could not load this profile automatically. Try opening it in LinkedIn and using the extension instead.';
+        } else {
+          linkedinScrapedText = data.profileText || '';
+          statusEl.textContent = '';
+          document.getElementById('linkedin-profile-text').textContent = linkedinScrapedText;
+          profileWrap.style.display = '';
+        }
+      } catch (_) {
+        statusEl.textContent = 'Could not load this profile automatically. Try opening it in LinkedIn and using the extension instead.';
+      }
+
+      btn.disabled = false;
+      btn.textContent = 'Load Profile';
+    }
+
+    async function generateLinkedInEmail() {
+      const genBtn = document.getElementById('linkedin-gen-btn');
+      genBtn.disabled = true;
+      genBtn.textContent = 'Generating…';
+
+      const emailWrap = document.getElementById('linkedin-email-wrap');
+      emailWrap.style.display = 'none';
+
+      try {
+        const contactObj = {
+          name: 'LinkedIn Contact',
+          company: '',
+          school: '',
+          role: '',
+          email: '',
+          profileText: linkedinScrapedText,
+        };
+        const res = await fetch('/find/generate-batch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({
+            contacts: [contactObj],
+            userProfile,
+            assumedSchool: userProfile?.school || '',
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed');
+        const result = data.results?.[0];
+        if (!result) throw new Error('No result');
+
+        linkedinEmailSubject = result.subject || '';
+        linkedinEmailBody    = result.body    || '';
+
+        document.getElementById('linkedin-email-subject').textContent = `Subject: ${linkedinEmailSubject}`;
+        document.getElementById('linkedin-email-body').value = linkedinEmailBody;
+        emailWrap.style.display = '';
+      } catch (err) {
+        document.getElementById('linkedin-status').textContent = 'Could not generate email. Try again.';
+      }
+
+      genBtn.disabled = false;
+      genBtn.textContent = 'Generate email';
+    }
+
+    async function saveLinkedInDraft() {
+      const btn = document.getElementById('linkedin-draft-btn');
+      const statusEl = document.getElementById('linkedin-draft-status');
+      btn.disabled = true;
+      btn.textContent = 'Saving…';
+      statusEl.textContent = '';
+
+      const subject = linkedinEmailSubject;
+      const body = document.getElementById('linkedin-email-body').value;
+
+      try {
+        const res = await fetch('/auth/gmail/draft', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ subject, body }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed');
+        statusEl.textContent = 'Saved ✓';
+        statusEl.style.color = '#059669';
+      } catch (_) {
+        statusEl.textContent = 'Failed — connect Gmail first?';
+        statusEl.style.color = '#ef4444';
+      }
+
+      btn.disabled = false;
+      btn.textContent = 'Save to Gmail drafts';
+      setTimeout(() => { statusEl.textContent = ''; }, 3000);
+    }
+
+    function copyLinkedInEmail() {
+      const body = document.getElementById('linkedin-email-body').value;
+      navigator.clipboard.writeText(body).then(() => {
+        const conf = document.getElementById('linkedin-copy-confirm');
+        conf.style.display = 'inline';
+        setTimeout(() => { conf.style.display = 'none'; }, 2000);
+      });
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // FIND PAGE — CSV flow
+    // ══════════════════════════════════════════════════════════════════════════
+
+    let csvAllRows       = [];
+    let csvColumns       = [];
+    let csvScoredContacts = [];
+    let csvSelectedIndices = new Set();
+    let csvGeneratedEmails = {}; // index in csvScoredContacts → { subject, body }
+    let savedDatabases   = [];
+    let currentDbName    = '';
+
+    // ── Upload zone setup ──
+    const uploadZone    = document.getElementById('upload-zone');
+    const csvFileInput  = document.getElementById('csv-file-input');
+
+    document.getElementById('upload-browse-btn').addEventListener('click', () => csvFileInput.click());
+    uploadZone.addEventListener('click', () => csvFileInput.click());
+
+    uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.classList.add('dragover'); });
+    uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
+    uploadZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadZone.classList.remove('dragover');
+      const file = e.dataTransfer.files[0];
+      if (file) handleFileUpload(file);
+    });
+
+    csvFileInput.addEventListener('change', function () {
+      if (this.files[0]) handleFileUpload(this.files[0]);
+      this.value = '';
+    });
+
+    async function handleFileUpload(file) {
+      uploadZone.style.opacity = '0.5';
+      uploadZone.querySelector('.upload-zone-text').innerHTML = 'Parsing file…';
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        const res = await fetch('/find/parse-upload', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+          body: formData,
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Parse failed');
+
+        csvColumns = data.columns || [];
+        csvAllRows = data.allRows || [];
+        currentDbName = file.name.replace(/\.(csv|xlsx|xls)$/i, '');
+
+        showMappingStep(file.name, data.preview || []);
+      } catch (err) {
+        uploadZone.style.opacity = '';
+        uploadZone.querySelector('.upload-zone-text').innerHTML =
+          `<span style="color:#ef4444;">Failed to parse file: ${escHtml(err.message)}</span>`;
+        setTimeout(() => {
+          uploadZone.querySelector('.upload-zone-text').innerHTML =
+            'Drag and drop your file here, or <strong id="upload-browse-btn" style="cursor:pointer;">browse</strong>';
+          document.getElementById('upload-browse-btn').addEventListener('click', () => csvFileInput.click());
+        }, 2500);
+      }
+    }
+
+    function showMappingStep(filename, preview) {
+      uploadZone.style.opacity = '';
+      uploadZone.querySelector('.upload-zone-text').innerHTML =
+        'Drag and drop your file here, or <strong id="upload-browse-btn" style="cursor:pointer;">browse</strong>';
+      document.getElementById('upload-browse-btn').addEventListener('click', () => csvFileInput.click());
+
+      document.getElementById('csv-flow-panel').style.display = '';
+      document.getElementById('csv-mapping-step').style.display = '';
+      document.getElementById('csv-contacts-step').style.display = 'none';
+      document.getElementById('csv-emails-step').style.display = 'none';
+
+      document.getElementById('csv-filename-title').textContent = `Map columns — ${filename}`;
+      document.getElementById('csv-preview-count').textContent =
+        `${csvAllRows.length} rows detected`;
+
+      // Build column mapping dropdowns
+      const fields = [
+        { key: 'name',    label: 'Name *',  required: true },
+        { key: 'email',   label: 'Email' },
+        { key: 'company', label: 'Company / Firm' },
+        { key: 'school',  label: 'School' },
+        { key: 'role',    label: 'Role / Title' },
+      ];
+      const grid = document.getElementById('col-map-grid');
+      grid.innerHTML = fields.map(f => `
+        <div class="col-map-field">
+          <label>${escHtml(f.label)}</label>
+          <select id="map-${f.key}">
+            <option value="">— skip —</option>
+            ${csvColumns.map(col => {
+              const autoMatch = autoMatchColumn(col, f.key);
+              return `<option value="${escHtml(col)}"${autoMatch ? ' selected' : ''}>${escHtml(col)}</option>`;
+            }).join('')}
+          </select>
+        </div>
+      `).join('');
+    }
+
+    function autoMatchColumn(colName, fieldKey) {
+      const c = colName.toLowerCase();
+      const matchers = {
+        name:    ['name', 'full name', 'fullname', 'contact name'],
+        email:   ['email', 'e-mail', 'email address'],
+        company: ['company', 'firm', 'organization', 'employer', 'employer name'],
+        school:  ['school', 'university', 'college', 'institution', 'alma mater'],
+        role:    ['role', 'title', 'job title', 'position', 'level', 'seniority'],
+      };
+      return (matchers[fieldKey] || []).some(m => c.includes(m));
+    }
+
+    async function scoreContacts() {
+      const nameCol    = document.getElementById('map-name').value;
+      const emailCol   = document.getElementById('map-email').value;
+      const companyCol = document.getElementById('map-company').value;
+      const schoolCol  = document.getElementById('map-school').value;
+      const roleCol    = document.getElementById('map-role').value;
+
+      if (!nameCol) {
+        alert('Please select the Name column.');
+        return;
+      }
+
+      const btn = document.getElementById('score-contacts-btn');
+      btn.disabled = true;
+      btn.textContent = 'Scoring…';
+
+      const contacts = csvAllRows
+        .filter(row => row[nameCol])
+        .map(row => ({
+          name:    row[nameCol]    || '',
+          email:   emailCol   ? (row[emailCol]   || '') : '',
+          company: companyCol ? (row[companyCol] || '') : '',
+          school:  schoolCol  ? (row[schoolCol]  || '') : '',
+          role:    roleCol    ? (row[roleCol]    || '') : '',
+        }));
+
+      try {
+        const res = await fetch('/find/score-contacts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({
+            contacts,
+            userSchool: userProfile?.school || '',
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Scoring failed');
+
+        csvScoredContacts = data.contacts || [];
+        csvSelectedIndices.clear();
+        csvGeneratedEmails = {};
+
+        // Auto-select High matches
+        csvScoredContacts.forEach((c, i) => {
+          if (c.matchLevel === 'High' && !c.alreadyContacted) csvSelectedIndices.add(i);
+        });
+
+        showContactsStep();
+      } catch (err) {
+        alert('Could not score contacts: ' + err.message);
+      }
+
+      btn.disabled = false;
+      btn.textContent = 'Score contacts';
+    }
+
+    function showContactsStep() {
+      document.getElementById('csv-mapping-step').style.display = 'none';
+      document.getElementById('csv-contacts-step').style.display = '';
+      document.getElementById('csv-emails-step').style.display = 'none';
+
+      const high   = csvScoredContacts.filter(c => c.matchLevel === 'High').length;
+      const medium = csvScoredContacts.filter(c => c.matchLevel === 'Medium').length;
+      const low    = csvScoredContacts.filter(c => c.matchLevel === 'Low').length;
+
+      document.getElementById('contacts-step-sub').textContent =
+        `${csvScoredContacts.length} contacts scored — ${high} High, ${medium} Medium, ${low} Low match.`;
+
+      // Skip preview toggle state
+      const skipPreview = localStorage.getItem('cm_skip_preview') === 'true';
+      document.getElementById('skip-preview-toggle').checked = skipPreview;
+
+      renderContactList();
+      updateGenerateBtn();
+    }
+
+    function renderContactList() {
+      const list = document.getElementById('contact-list');
+      const total = csvScoredContacts.length;
+      document.getElementById('contacts-count-label').textContent =
+        `${csvSelectedIndices.size} of ${total} selected`;
+
+      list.innerHTML = csvScoredContacts.map((c, i) => {
+        const selected = csvSelectedIndices.has(i);
+        const badgeClass = `match-badge-${c.matchLevel.toLowerCase()}`;
+        const meta = [c.role, c.company, c.email].filter(Boolean).join(' · ');
+        return `
+          <div class="contact-card${selected ? ' selected' : ''}${c.alreadyContacted ? ' already-contacted' : ''}"
+               onclick="toggleContact(${i})" id="contact-card-${i}">
+            <input type="checkbox" class="contact-checkbox" ${selected ? 'checked' : ''}
+                   onchange="toggleContact(${i})" onclick="event.stopPropagation()" />
+            <div class="contact-info">
+              <div class="contact-name">${escHtml(c.name)}</div>
+              <div class="contact-meta">${escHtml(meta) || '—'}</div>
+            </div>
+            <div class="contact-badges">
+              <span class="match-badge ${badgeClass}">${escHtml(c.matchLevel)}</span>
+              ${c.alreadyContacted ? '<span class="already-tag">Already contacted</span>' : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function toggleContact(i) {
+      if (csvSelectedIndices.has(i)) {
+        csvSelectedIndices.delete(i);
+      } else {
+        csvSelectedIndices.add(i);
+      }
+      renderContactList();
+      updateGenerateBtn();
+    }
+
+    function selectAllHigh() {
+      csvScoredContacts.forEach((c, i) => {
+        if (c.matchLevel === 'High') csvSelectedIndices.add(i);
+      });
+      renderContactList();
+      updateGenerateBtn();
+    }
+
+    function selectAllContacts() {
+      csvScoredContacts.forEach((_, i) => csvSelectedIndices.add(i));
+      renderContactList();
+      updateGenerateBtn();
+    }
+
+    function deselectAll() {
+      csvSelectedIndices.clear();
+      renderContactList();
+      updateGenerateBtn();
+    }
+
+    function updateGenerateBtn() {
+      const btn = document.getElementById('generate-batch-btn');
+      const count = csvSelectedIndices.size;
+      btn.disabled = count === 0;
+      btn.textContent = count > 0
+        ? `Generate emails for ${count} selected`
+        : 'Generate emails for selected';
+    }
+
+    function toggleSkipPreview(checked) {
+      localStorage.setItem('cm_skip_preview', checked ? 'true' : 'false');
+    }
+
+    async function generateBatch() {
+      const selectedList = [...csvSelectedIndices].sort((a, b) => a - b);
+      const skipPreview = localStorage.getItem('cm_skip_preview') === 'true';
+
+      if (skipPreview) {
+        await generateAndSaveDirectly(selectedList);
+        return;
+      }
+
+      document.getElementById('csv-mapping-step').style.display = 'none';
+      document.getElementById('csv-contacts-step').style.display = 'none';
+      document.getElementById('csv-emails-step').style.display = '';
+
+      document.getElementById('emails-step-sub').textContent =
+        `Generating ${selectedList.length} email${selectedList.length !== 1 ? 's' : ''}…`;
+      document.getElementById('save-all-controls').style.display = 'none';
+      document.getElementById('save-db-divider').style.display = 'none';
+      document.getElementById('save-db-section').style.display = 'none';
+
+      const progressEl = document.getElementById('batch-progress');
+      const progressText = document.getElementById('batch-progress-text');
+      const emailCards = document.getElementById('email-cards');
+      progressEl.style.display = 'flex';
+      emailCards.innerHTML = '';
+
+      for (let n = 0; n < selectedList.length; n++) {
+        const contactIdx = selectedList[n];
+        const contact = csvScoredContacts[contactIdx];
+        progressText.textContent = `Generating email ${n + 1} of ${selectedList.length} — ${contact.name}…`;
+
+        try {
+          const res = await fetch('/find/generate-batch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+            body: JSON.stringify({
+              contacts: [contact],
+              userProfile,
+              assumedSchool: userProfile?.school || '',
+            }),
+          });
+          const data = await res.json();
+          const result = data.results?.[0];
+          if (result) {
+            csvGeneratedEmails[contactIdx] = { subject: result.subject, body: result.body };
+          }
+        } catch (_) {
+          csvGeneratedEmails[contactIdx] = { subject: '', body: '[Failed to generate — try again]' };
+        }
+
+        // Render/update cards progressively
+        renderEmailCards(selectedList.slice(0, n + 1));
+      }
+
+      progressEl.style.display = 'none';
+      document.getElementById('emails-step-sub').textContent =
+        `${selectedList.length} email${selectedList.length !== 1 ? 's' : ''} generated. Edit before saving.`;
+      document.getElementById('save-all-controls').style.display = 'flex';
+      document.getElementById('save-db-divider').style.display = '';
+      document.getElementById('save-db-section').style.display = '';
+      document.getElementById('save-db-name-input').value = currentDbName;
+    }
+
+    function renderEmailCards(selectedList) {
+      const emailCards = document.getElementById('email-cards');
+      emailCards.innerHTML = selectedList.map(contactIdx => {
+        const contact = csvScoredContacts[contactIdx];
+        const email = csvGeneratedEmails[contactIdx];
+        const meta = [contact.role, contact.company].filter(Boolean).join(' at ');
+        return `
+          <div class="email-card" id="email-card-${contactIdx}">
+            <div class="email-card-header">
+              <div class="email-card-name">${escHtml(contact.name)}</div>
+              <div class="email-card-meta">${escHtml(meta)}</div>
+            </div>
+            ${email ? `
+              <div class="email-card-subject">Subject: ${escHtml(email.subject)}</div>
+              <textarea class="email-card-body" id="email-body-${contactIdx}">${escHtml(email.body)}</textarea>
+            ` : `
+              <div style="font-size:13px;color:var(--text-muted);padding:16px 0;">
+                <span class="spinner"></span> Generating…
+              </div>
+            `}
+            <div class="email-card-saving" id="email-saving-${contactIdx}"></div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function generateAndSaveDirectly(selectedList) {
+      const btn = document.getElementById('generate-batch-btn');
+      btn.disabled = true;
+
+      for (let n = 0; n < selectedList.length; n++) {
+        const contactIdx = selectedList[n];
+        const contact = csvScoredContacts[contactIdx];
+        btn.textContent = `Generating & saving ${n + 1} of ${selectedList.length}…`;
+
+        try {
+          const genRes = await fetch('/find/generate-batch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+            body: JSON.stringify({
+              contacts: [contact],
+              userProfile,
+              assumedSchool: userProfile?.school || '',
+            }),
+          });
+          const genData = await genRes.json();
+          const result = genData.results?.[0];
+          if (result) {
+            await fetch('/auth/gmail/draft', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+              body: JSON.stringify({ subject: result.subject, body: result.body }),
+            });
+          }
+        } catch (_) {}
+
+        if (n < selectedList.length - 1) {
+          await new Promise(r => setTimeout(r, 2000));
+        }
+      }
+
+      btn.disabled = false;
+      btn.textContent = `Done — ${selectedList.length} drafts saved`;
+      setTimeout(() => updateGenerateBtn(), 3000);
+    }
+
+    function goBackToContacts() {
+      document.getElementById('csv-emails-step').style.display = 'none';
+      document.getElementById('csv-contacts-step').style.display = '';
+    }
+
+    async function saveAllDrafts() {
+      const btn = document.getElementById('save-all-btn');
+      btn.disabled = true;
+
+      const entries = Object.entries(csvGeneratedEmails).map(([idx]) => Number(idx));
+      let saved = 0;
+
+      for (let n = 0; n < entries.length; n++) {
+        const contactIdx = entries[n];
+        const savingEl = document.getElementById(`email-saving-${contactIdx}`);
+        const bodyEl   = document.getElementById(`email-body-${contactIdx}`);
+        if (!bodyEl) continue;
+
+        btn.textContent = `Saving draft ${n + 1} of ${entries.length}…`;
+        if (savingEl) { savingEl.textContent = 'Saving…'; savingEl.className = 'email-card-saving'; }
+
+        try {
+          const res = await fetch('/auth/gmail/draft', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+            body: JSON.stringify({
+              subject: csvGeneratedEmails[contactIdx].subject,
+              body:    bodyEl.value,
+            }),
+          });
+          if (!res.ok) throw new Error('Failed');
+          saved++;
+          if (savingEl) { savingEl.textContent = 'Saved to Gmail ✓'; savingEl.className = 'email-card-saving saved'; }
+        } catch (_) {
+          if (savingEl) { savingEl.textContent = 'Failed'; savingEl.className = 'email-card-saving error'; }
+        }
+
+        if (n < entries.length - 1) {
+          await new Promise(r => setTimeout(r, 2000));
+        }
+      }
+
+      btn.disabled = false;
+      btn.textContent = `${saved} of ${entries.length} drafts saved`;
+    }
+
+    function resetCsvFlow() {
+      document.getElementById('csv-flow-panel').style.display = 'none';
+      document.getElementById('csv-mapping-step').style.display = 'none';
+      document.getElementById('csv-contacts-step').style.display = 'none';
+      document.getElementById('csv-emails-step').style.display = 'none';
+      csvAllRows = [];
+      csvColumns = [];
+      csvScoredContacts = [];
+      csvSelectedIndices.clear();
+      csvGeneratedEmails = {};
+    }
+
+    // ── Save database for reuse ─────────────────────────────────────────────────
+    async function saveDatabaseForReuse() {
+      const name = document.getElementById('save-db-name-input').value.trim() || currentDbName;
+      const btn  = document.getElementById('save-db-btn');
+      const statusEl = document.getElementById('save-db-status');
+
+      btn.disabled = true;
+      btn.textContent = 'Saving…';
+      statusEl.textContent = '';
+
+      try {
+        const res = await fetch('/find/save-database', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({
+            filename: name,
+            contacts: csvScoredContacts,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed');
+        statusEl.textContent = 'Saved!';
+        statusEl.style.color = '#059669';
+        btn.textContent = 'Saved ✓';
+        loadSavedDatabases();
+      } catch (err) {
+        statusEl.textContent = 'Failed to save: ' + err.message;
+        statusEl.style.color = '#ef4444';
+        btn.disabled = false;
+        btn.textContent = 'Save database';
+      }
+    }
+
+    // ── Saved databases ─────────────────────────────────────────────────────────
+    async function loadSavedDatabases() {
+      try {
+        const res = await fetch('/find/databases', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) return;
+        savedDatabases = await res.json();
+        renderSavedDatabases();
+      } catch (_) {}
+    }
+
+    function renderSavedDatabases() {
+      const section = document.getElementById('saved-dbs-section');
+      const row = document.getElementById('saved-dbs-row');
+      if (savedDatabases.length === 0) { section.style.display = 'none'; return; }
+      section.style.display = '';
+      row.innerHTML = savedDatabases.map(db => `
+        <span class="saved-db-chip" onclick="loadDatabase('${db.id}')">
+          ${escHtml(db.filename)}
+          <span class="chip-count">(${db.contact_count})</span>
+          <span class="chip-delete" onclick="event.stopPropagation(); deleteDatabase('${db.id}')">×</span>
+        </span>
+      `).join('');
+    }
+
+    async function loadDatabase(id) {
+      const db = savedDatabases.find(d => d.id === id);
+      if (!db) return;
+
+      const section = document.getElementById('saved-dbs-section');
+      section.style.opacity = '0.5';
+
+      try {
+        const res = await fetch(`/find/databases/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed');
+
+        const contacts = data.contacts || [];
+        currentDbName = db.filename;
+
+        // Score the loaded contacts
+        const scoreRes = await fetch('/find/score-contacts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({
+            contacts,
+            userSchool: userProfile?.school || '',
+          }),
+        });
+        const scoreData = await scoreRes.json();
+        csvScoredContacts = scoreData.contacts || [];
+        csvSelectedIndices.clear();
+        csvGeneratedEmails = {};
+        csvScoredContacts.forEach((c, i) => {
+          if (c.matchLevel === 'High' && !c.alreadyContacted) csvSelectedIndices.add(i);
+        });
+
+        document.getElementById('csv-flow-panel').style.display = '';
+        showContactsStep();
+      } catch (err) {
+        alert('Could not load database: ' + err.message);
+      }
+
+      section.style.opacity = '';
+    }
+
+    async function deleteDatabase(id) {
+      if (!confirm('Delete this saved database?')) return;
+      try {
+        await fetch(`/find/databases/${id}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        savedDatabases = savedDatabases.filter(d => d.id !== id);
+        renderSavedDatabases();
+      } catch (_) {}
+    }
+
+    // ── Apollo waitlist ─────────────────────────────────────────────────────────
+    async function submitApolloNotify() {
+      const email = document.getElementById('apollo-email-input').value.trim();
+      if (!email) return;
+      const btn = document.getElementById('apollo-notify-btn');
+      btn.disabled = true;
+      try {
+        await fetch('/find/apollo-waitlist', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ email }),
+        });
+        document.getElementById('apollo-notify-confirm').style.display = '';
+        btn.textContent = 'Done ✓';
+      } catch (_) {
+        btn.disabled = false;
+        btn.textContent = 'Notify me';
+      }
+    }
+
+    // ── Init ───────────────────────────────────────────────────────────────────
     loadDashboard();
   </script>
 
