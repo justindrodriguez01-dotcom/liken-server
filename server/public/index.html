@@ -381,6 +381,16 @@
       background: var(--accent-hover);
     }
 
+    /* More contacts hint */
+    .more-contacts {
+      font-size: 11px;
+      color: var(--text-secondary);
+      opacity: 0.55;
+      text-align: center;
+      padding: 5px 0 2px;
+      letter-spacing: -0.01em;
+    }
+
     /* Progress */
     .progress-wrap { margin-top: 10px; }
     .progress-lbl {
@@ -750,9 +760,10 @@
                       <span class="row-done-check">&#10003;</span>
                     </div>
                   </div>
-                  <div class="gen-btn" id="csv-gen-btn">Generate 3 drafts</div>
+                  <div class="more-contacts">+ 46 more quality contacts</div>
+                  <div class="gen-btn" id="csv-gen-btn">Generate 50 drafts</div>
                   <div class="progress-wrap" id="csv-progress" style="display:none;">
-                    <div class="progress-lbl" id="csv-progress-lbl">Saving draft 1 of 3...</div>
+                    <div class="progress-lbl" id="csv-progress-lbl">Saving draft 1 of 50...</div>
                     <div class="progress-track">
                       <div class="progress-fill" id="csv-progress-fill"></div>
                     </div>
@@ -777,7 +788,7 @@
 
                 <!-- Step B: results + generate -->
                 <div class="scene-step" id="step-search-results">
-                  <div class="scene-label">5 contacts found</div>
+                  <div class="scene-label">8 contacts found</div>
                   <div class="contact-list" id="search-rows">
                     <div class="contact-row">
                       <div class="cbox checked">&#10003;</div>
@@ -811,18 +822,11 @@
                       </div>
                       <span class="row-done-check">&#10003;</span>
                     </div>
-                    <div class="contact-row">
-                      <div class="cbox checked">&#10003;</div>
-                      <div class="contact-info">
-                        <div class="contact-name">Tyler Brooks</div>
-                        <div class="contact-detail">Lazard · IB Analyst</div>
-                      </div>
-                      <span class="row-done-check">&#10003;</span>
-                    </div>
                   </div>
-                  <div class="gen-btn" id="search-gen-btn">Generate 5 drafts</div>
+                  <div class="more-contacts">+ 4 more</div>
+                  <div class="gen-btn" id="search-gen-btn">Generate 8 drafts</div>
                   <div class="progress-wrap" id="search-progress" style="display:none;">
-                    <div class="progress-lbl" id="search-progress-lbl">Saving draft 1 of 5...</div>
+                    <div class="progress-lbl" id="search-progress-lbl">Saving draft 1 of 8...</div>
                     <div class="progress-track">
                       <div class="progress-fill" id="search-progress-fill"></div>
                     </div>
@@ -1046,7 +1050,7 @@
               setTimeout(() => {
                 runProgress(
                   'csv-progress-fill', 'csv-progress-lbl', 'csv-progress', 'csv-rows', 'csv-gen-btn',
-                  ['Saving draft 1 of 3...', 'Saving draft 2 of 3...', 'Saving draft 3 of 3...', '3 drafts saved to Gmail'],
+                  ['Saving draft 1 of 50...', 'Saving draft 12 of 50...', 'Saving draft 23 of 50...', '50 drafts saved to Gmail \u2713'],
                   true,
                   () => {
                     setTimeout(() => {
@@ -1099,7 +1103,7 @@
             setTimeout(() => {
               runProgress(
                 'search-progress-fill', 'search-progress-lbl', 'search-progress', 'search-rows', 'search-gen-btn',
-                ['Saving draft 1 of 5...', 'Saving draft 2 of 5...', 'Saving draft 3 of 5...', 'Saving draft 4 of 5...', 'Saving draft 5 of 5...', '5 drafts saved to Gmail'],
+                ['Saving draft 1 of 8...', 'Saving draft 3 of 8...', 'Saving draft 5 of 8...', 'Saving draft 7 of 8...', '8 drafts saved to Gmail \u2713'],
                 false,
                 () => {
                   setTimeout(() => {
