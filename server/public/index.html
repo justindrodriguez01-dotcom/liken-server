@@ -426,15 +426,39 @@
     }
     @keyframes blink { 50% { opacity: 0; } }
 
-    /* ── Social proof strip ── */
-    .social-strip {
-      padding: 28px 0;
+    /* ── Logo ticker ── */
+    .ticker-section {
+      padding: 36px 0;
       border-top: 1px solid var(--border);
-      text-align: center;
+      overflow: hidden;
     }
-    .social-strip p {
+    .ticker-label {
+      text-align: center;
       font-size: 14px;
       color: var(--text-secondary);
+      margin-bottom: 20px;
+    }
+    .ticker-track-outer {
+      overflow: hidden;
+      mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+      -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+    }
+    .ticker-track {
+      display: flex;
+      align-items: center;
+      gap: 60px;
+      width: max-content;
+      animation: ticker-scroll 20s linear infinite;
+    }
+    @keyframes ticker-scroll {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+    .ticker-track img {
+      height: 32px;
+      width: auto;
+      filter: grayscale(100%) opacity(0.55);
+      flex-shrink: 0;
     }
 
     /* ── How it works ── */
@@ -745,10 +769,35 @@
     </div>
   </section>
 
-  <!-- Social proof strip -->
-  <div class="social-strip fade-in">
-    <div class="container">
-      <p>Used by students at Michigan, NYU, Georgetown, and more</p>
+  <!-- Logo ticker -->
+  <div class="ticker-section">
+    <p class="ticker-label">Used by students at schools that place on the Street</p>
+    <div class="ticker-track-outer">
+      <div class="ticker-track">
+        <img src="https://logo.clearbit.com/umich.edu" alt="University of Michigan">
+        <img src="https://logo.clearbit.com/nyu.edu" alt="NYU">
+        <img src="https://logo.clearbit.com/georgetown.edu" alt="Georgetown">
+        <img src="https://logo.clearbit.com/upenn.edu" alt="UPenn">
+        <img src="https://logo.clearbit.com/indiana.edu" alt="Indiana">
+        <img src="https://logo.clearbit.com/cornell.edu" alt="Cornell">
+        <img src="https://logo.clearbit.com/columbia.edu" alt="Columbia">
+        <img src="https://logo.clearbit.com/duke.edu" alt="Duke">
+        <img src="https://logo.clearbit.com/vanderbilt.edu" alt="Vanderbilt">
+        <img src="https://logo.clearbit.com/virginia.edu" alt="UVA">
+        <img src="https://logo.clearbit.com/northwestern.edu" alt="Northwestern">
+        <!-- duplicate set for seamless loop -->
+        <img src="https://logo.clearbit.com/umich.edu" alt="University of Michigan">
+        <img src="https://logo.clearbit.com/nyu.edu" alt="NYU">
+        <img src="https://logo.clearbit.com/georgetown.edu" alt="Georgetown">
+        <img src="https://logo.clearbit.com/upenn.edu" alt="UPenn">
+        <img src="https://logo.clearbit.com/indiana.edu" alt="Indiana">
+        <img src="https://logo.clearbit.com/cornell.edu" alt="Cornell">
+        <img src="https://logo.clearbit.com/columbia.edu" alt="Columbia">
+        <img src="https://logo.clearbit.com/duke.edu" alt="Duke">
+        <img src="https://logo.clearbit.com/vanderbilt.edu" alt="Vanderbilt">
+        <img src="https://logo.clearbit.com/virginia.edu" alt="UVA">
+        <img src="https://logo.clearbit.com/northwestern.edu" alt="Northwestern">
+      </div>
     </div>
   </div>
 
