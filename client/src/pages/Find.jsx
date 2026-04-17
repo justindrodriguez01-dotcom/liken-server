@@ -35,35 +35,114 @@ function SectionCard({ option, title, children, disabled, badge }) {
   )
 }
 
+// ── Helpers: parse profileData text into structured fields ─────────────────────
+
+function parseProfileData(text) {
+  const lines = (text || '').split('\n')
+  const get = (prefix) => {
+    const line = lines.find(l => l.toLowerCase().startsWith(prefix.toLowerCase()))
+    return line ? line.slice(prefix.length).trim() : ''
+  }
+  const name     = get('Name:')
+  const headline = get('Headline:')
+  const location = get('Location:')
+
+  // Try to split "VP at Goldman Sachs" → role + firm
+  let role = '', firm = ''
+  if (headline) {
+    const atMatch = headline.match(/^(.+?)\s+at\s+(.+)$/i)
+    if (atMatch) { role = atMatch[1].trim(); firm = atMatch[2].trim() }
+    else { role = headline }
+  }
+
+  return { name, headline, role, firm, location }
+}
+
+const FINANCE_FIRMS_CLIENT = new Set([
+  'goldman sachs','morgan stanley','jpmorgan','jp morgan','bank of america',
+  'citigroup','citi','barclays','ubs','jefferies','lazard','evercore','moelis',
+  'pjt partners','houlihan lokey','blackstone','kkr','carlyle','apollo','tpg',
+  'warburg pincus','bain capital','citadel','two sigma','bridgewater','point72',
+  'blackrock','fidelity','pimco',
+])
+const FINANCE_KW_CLIENT = ['capital','partners','investment','management','securities',
+  'equity','fund','financial','banking','trading','hedge','advisory']
+
+function clientMatchLevel(role, firm) {
+  const r = (role || '').toLowerCase()
+  const f = (firm || '').toLowerCase()
+  let score = 0
+  if (FINANCE_FIRMS_CLIENT.has(f)) score += 4
+  else if (FINANCE_KW_CLIENT.some(k => f.includes(k))) score += 2
+  if (['managing director','md','partner','head of'].some(s => r.includes(s))) score += 3
+  else if (['vice president','vp','director','principal'].some(s => r.includes(s))) score += 2
+  else if (['analyst','associate'].some(s => r.includes(s))) score += 1
+  if (score >= 5) return 'High'
+  if (score >= 2) return 'Medium'
+  return 'Low'
+}
+
+function matchReasons(role, firm, name) {
+  const reasons = []
+  const f = (firm || '').toLowerCase()
+  const r = (role || '').toLowerCase()
+  if (FINANCE_FIRMS_CLIENT.has(f)) reasons.push(`Works at ${firm} — top finance firm`)
+  else if (FINANCE_KW_CLIENT.some(k => f.includes(k))) reasons.push(`${firm} is a finance-adjacent firm`)
+  if (['managing director','md','partner','head of'].some(s => r.includes(s))) reasons.push(`Senior role (${role}) — high value contact`)
+  else if (['vice president','vp','director','principal'].some(s => r.includes(s))) reasons.push(`Mid-senior role (${role}) — good for informational`)
+  else if (['analyst','associate'].some(s => r.includes(s))) reasons.push(`Junior role (${role}) — relatable contact, likely to reply`)
+  if (!reasons.length) reasons.push('Limited info — profile loaded partially')
+  return reasons
+}
+
 // ── Section A: LinkedIn ────────────────────────────────────────────────────────
 
 function LinkedInSection({ profile }) {
   const [url, setUrl] = useState('')
   const [loadingProfile, setLoadingProfile] = useState(false)
-  const [profileText, setProfileText] = useState('')
+  const [profileData, setProfileData] = useState(null)   // raw text from server
+  const [parsed, setParsed] = useState(null)             // { name, headline, role, firm, location }
+  const [matchLevel, setMatchLevel] = useState('')
+  const [reasons, setReasons] = useState([])
   const [error, setError] = useState('')
   const [generatingEmail, setGeneratingEmail] = useState(false)
   const [emailSubject, setEmailSubject] = useState('')
   const [emailBody, setEmailBody] = useState('')
   const [draftStatus, setDraftStatus] = useState('')
   const [copyDone, setCopyDone] = useState(false)
-  const hasResult = !!profileText
-  const hasEmail = !!emailBody
+
+  const hasResult = !!profileData
+  const hasEmail  = !!emailBody
 
   async function loadProfile() {
     if (!url.trim()) return
     setLoadingProfile(true)
     setError('')
-    setProfileText('')
+    setProfileData(null)
+    setParsed(null)
+    setMatchLevel('')
+    setReasons([])
     setEmailSubject('')
     setEmailBody('')
     setDraftStatus('')
     try {
+      // Server returns { profileData, cached, partial } or { error, blocked }
       const data = await apiFetch('/find/scrape', {
         method: 'POST',
         body: JSON.stringify({ url }),
       })
-      setProfileText(data.profileText || '')
+      if (data.error) {
+        setError(data.error)
+      } else {
+        const text = data.profileData || ''
+        const p = parseProfileData(text)
+        const ml = clientMatchLevel(p.role, p.firm)
+        const r  = matchReasons(p.role, p.firm, p.name)
+        setProfileData(text)
+        setParsed(p)
+        setMatchLevel(ml)
+        setReasons(r)
+      }
     } catch (err) {
       setError(err.message || 'Could not load this profile. Try opening it in LinkedIn and using the extension instead.')
     }
@@ -71,6 +150,7 @@ function LinkedInSection({ profile }) {
   }
 
   async function generateEmail() {
+    if (!profileData) return
     setGeneratingEmail(true)
     setEmailSubject('')
     setEmailBody('')
@@ -78,13 +158,20 @@ function LinkedInSection({ profile }) {
       const data = await apiFetch('/find/generate-batch', {
         method: 'POST',
         body: JSON.stringify({
-          contacts: [{ name: 'LinkedIn Contact', company: '', school: '', role: '', email: '', profileText }],
-          userProfile: profile,
+          contacts: [{
+            name:        parsed?.name    || 'LinkedIn Contact',
+            company:     parsed?.firm    || '',
+            school:      '',
+            role:        parsed?.role    || '',
+            email:       '',
+            profileText: profileData,   // raw text — server uses this directly
+          }],
           assumedSchool: profile?.school || '',
         }),
       })
       const r = data.results?.[0]
-      if (r) { setEmailSubject(r.subject); setEmailBody(r.body) }
+      if (r?.subject) { setEmailSubject(r.subject); setEmailBody(r.body) }
+      else setError('Generation failed — try again.')
     } catch (err) {
       setError('Could not generate email. Try again.')
     }
@@ -135,63 +222,104 @@ function LinkedInSection({ profile }) {
           />
         </div>
         <button onClick={loadProfile} disabled={loadingProfile || !url.trim()} className="btn-primary gap-2 whitespace-nowrap">
-          {loadingProfile ? <><Spinner size="xs" className="border-white/30 border-t-white" /> Loading…</> : 'Load Profile'}
+          {loadingProfile
+            ? <><Spinner size="xs" className="border-white/30 border-t-white" /> Loading…</>
+            : 'Load Profile'}
         </button>
       </div>
 
       {error && (
-        <p className="mt-3 text-[13px] text-gray-500 leading-relaxed">
+        <p className="mt-3 text-[13px] text-gray-500 leading-relaxed bg-gray-50 border border-[#E8E6E3] rounded-lg px-4 py-3">
           {error}
         </p>
       )}
 
-      {hasResult && (
-        <div className="mt-5 space-y-4">
-          <div>
-            <div className="field-label">Profile summary</div>
-            <div className="bg-[#fafaf9] border border-[#E8E6E3] rounded-lg px-4 py-3 text-[12px] text-gray-500 leading-relaxed max-h-28 overflow-y-auto scrollbar-thin whitespace-pre-wrap font-mono">
-              {profileText}
+      {/* Profile card — expands after successful scrape */}
+      {hasResult && parsed && (
+        <div className="mt-5 border border-[#E8E6E3] rounded-xl overflow-hidden bg-[#fafaf9] transition-all">
+
+          {/* Header row: name + match badge */}
+          <div className="flex items-start justify-between gap-4 px-5 py-4 border-b border-[#E8E6E3] bg-white">
+            <div className="min-w-0">
+              <div className="text-[15px] font-semibold text-gray-900 truncate">
+                {parsed.name || 'LinkedIn Profile'}
+              </div>
+              {(parsed.role || parsed.firm) && (
+                <div className="text-[13px] text-gray-500 mt-0.5 truncate">
+                  {[parsed.role, parsed.firm].filter(Boolean).join(' at ')}
+                </div>
+              )}
+              {parsed.location && (
+                <div className="text-[12px] text-gray-400 mt-0.5">{parsed.location}</div>
+              )}
+            </div>
+            <div className="flex-shrink-0 pt-0.5">
+              <MatchBadge level={matchLevel} />
             </div>
           </div>
 
-          {!hasEmail && !generatingEmail && (
-            <button onClick={generateEmail} className="btn-primary">
-              Generate cold email
-            </button>
-          )}
+          {/* Reasoning bullets */}
+          <div className="px-5 py-3 border-b border-[#E8E6E3]">
+            <div className="field-label mb-2">Match signals</div>
+            <ul className="space-y-1">
+              {reasons.map((r, i) => (
+                <li key={i} className="flex items-start gap-2 text-[12px] text-gray-600">
+                  <span className="text-[#0D7377] mt-0.5 flex-shrink-0">✓</span>
+                  {r}
+                </li>
+              ))}
+            </ul>
+          </div>
 
-          {generatingEmail && (
-            <div className="flex items-center gap-2 text-[13px] text-gray-500">
-              <Spinner size="sm" /> Generating email…
-            </div>
-          )}
+          {/* Email area */}
+          <div className="px-5 py-4">
+            {!hasEmail && !generatingEmail && (
+              <button onClick={generateEmail} className="btn-primary">
+                Generate cold email
+              </button>
+            )}
 
-          {hasEmail && (
-            <div className="bg-[#fafaf9] border border-[#E8E6E3] rounded-lg overflow-hidden">
-              <div className="px-4 py-2.5 border-b border-[#E8E6E3] text-[12px] text-gray-500">
-                <span className="font-medium text-gray-700">Subject:</span> {emailSubject}
+            {generatingEmail && (
+              <div className="flex items-center gap-2 text-[13px] text-gray-500 py-2">
+                <Spinner size="sm" /> Generating email…
               </div>
-              <textarea
-                value={emailBody}
-                onChange={e => setEmailBody(e.target.value)}
-                className="w-full min-h-[130px] px-4 py-3 bg-transparent text-[13px] text-gray-900 leading-relaxed resize-y outline-none border-0"
-              />
-              <div className="px-4 py-3 border-t border-[#E8E6E3] flex items-center gap-2">
-                <button onClick={saveDraft} disabled={draftStatus === 'saving'} className="btn-primary">
-                  {draftStatus === 'saving' ? <><Spinner size="xs" className="border-white/30 border-t-white" /> Saving…</> :
-                   draftStatus === 'saved' ? '✓ Saved to Gmail' :
-                   draftStatus === 'error' ? 'Failed — retry?' :
-                   'Save to Gmail draft'}
-                </button>
-                <button onClick={copyEmail} className="btn-ghost">
-                  {copyDone ? '✓ Copied' : 'Copy'}
-                </button>
-                <button onClick={() => { setEmailSubject(''); setEmailBody(''); generateEmail() }} className="btn-ghost ml-1">
-                  Regenerate
-                </button>
+            )}
+
+            {hasEmail && (
+              <div className="space-y-3">
+                <div className="text-[12px] text-gray-500">
+                  <span className="font-medium text-gray-700">Subject:</span> {emailSubject}
+                </div>
+                <textarea
+                  value={emailBody}
+                  onChange={e => setEmailBody(e.target.value)}
+                  className="w-full min-h-[140px] px-4 py-3 bg-white border border-[#E8E6E3] rounded-lg text-[13px] text-gray-900 leading-relaxed resize-y outline-none focus:border-[#0D7377] focus:ring-2 focus:ring-[#0D7377]/10"
+                />
+                <div className="flex items-center gap-2 flex-wrap">
+                  <button
+                    onClick={saveDraft}
+                    disabled={draftStatus === 'saving'}
+                    className="btn-primary"
+                  >
+                    {draftStatus === 'saving'
+                      ? <><Spinner size="xs" className="border-white/30 border-t-white" /> Saving…</>
+                      : draftStatus === 'saved'  ? '✓ Saved to Gmail'
+                      : draftStatus === 'error'  ? 'Failed — retry?'
+                      : 'Save to Gmail draft'}
+                  </button>
+                  <button onClick={copyEmail} className="btn-ghost">
+                    {copyDone ? '✓ Copied' : 'Copy'}
+                  </button>
+                  <button
+                    onClick={() => { setEmailSubject(''); setEmailBody(''); generateEmail() }}
+                    className="btn-ghost"
+                  >
+                    Regenerate
+                  </button>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       )}
     </SectionCard>

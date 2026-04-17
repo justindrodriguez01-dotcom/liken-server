@@ -80,6 +80,8 @@ function matchLevel(contact, userSchool) {
 // ─── Build profile data string for generation ────────────────────────────────
 
 function buildProfileString(contact, assumedSchool) {
+  // If a raw LinkedIn scrape blob was passed, use it directly as richer context
+  if (contact.profileText) return contact.profileText;
   const lines = [];
   if (contact.name)         lines.push(`Name: ${contact.name}`);
   if (contact.role)         lines.push(`Current Role: ${contact.role}`);
