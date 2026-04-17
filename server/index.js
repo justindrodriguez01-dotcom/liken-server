@@ -48,7 +48,7 @@ app.use((err, _req, res, _next) => {
 // ─── Page routes (extensionless URLs) ────────────────────────────────────────
 app.get("/signup",     (_req, res) => res.sendFile(path.join(__dirname, "public", "signup.html")));
 app.get("/login",      (_req, res) => res.sendFile(path.join(__dirname, "public", "login.html")));
-app.get("/dashboard",  (_req, res) => res.sendFile(path.join(__dirname, "public", "dashboard.html")));
+app.get("/dashboard",  (_req, res) => res.sendFile(path.join(__dirname, "public", "app", "index.html")));
 app.get("/onboarding", (_req, res) => res.sendFile(path.join(__dirname, "public", "onboarding.html")));
 
 // ─── Catch-all: serve index.html for any unmatched GET ───────────────────────
