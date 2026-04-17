@@ -93,8 +93,10 @@ function buildProfileString(contact, assumedSchool) {
 }
 
 // ─── Email prompt for CSV contacts ───────────────────────────────────────────
+// orgName: e.g. "PCT", "Finance Club" (optional)
+// relationshipType: "fraternity_sorority" | "student_org" | "general_alumni" | "" (optional)
 
-function buildBatchEmailPrompt(profileData, userProfile, sharedSchool) {
+function buildBatchEmailPrompt(profileData, userProfile, sharedSchool, orgName, relationshipType) {
   const stage = userProfile.recruiting_stage || "not provided";
   const areas = userProfile.target_areas     || "not provided";
 
@@ -121,7 +123,7 @@ If a field is not clearly and explicitly present, write NOT AVAILABLE. Do not in
 - Full name: [extract from data]
 - Current role: [job title — only if explicitly present, otherwise: NOT AVAILABLE]
 - Current firm: [employer — only if explicitly present, otherwise: NOT AVAILABLE]
-- Previous roles: [list of previous titles and firms from experience — only what is explicitly present, otherwise: NOT AVAILABLE]
+- Previous roles: [list of previous titles and firms — only what is explicitly present, otherwise: NOT AVAILABLE]
 - Education: [schools attended — only what is explicitly in education data, otherwise: NOT AVAILABLE]
 - Location: [city/region — only if explicitly present, otherwise: NOT AVAILABLE]
 - About section: [verbatim if present, otherwise: NOT AVAILABLE]
@@ -129,38 +131,76 @@ If a field is not clearly and explicitly present, write NOT AVAILABLE. Do not in
 Any field marked NOT AVAILABLE must never be referenced, implied, or compensated for in the email.
 If a field is NOT AVAILABLE, act as if that information does not exist.`;
 
-  // CTA — 3-branch calibration matching generate.js
-  let ctaRule = `Ask: close with a low-pressure ask for a quick call. Acknowledge they're busy.`;
+  // ── Connection block ────────────────────────────────────────────────────────
+  const isFrat = !!(orgName && relationshipType === "fraternity_sorority");
+  const isClub = !!(orgName && relationshipType === "student_org");
+  const isAlumni = relationshipType === "general_alumni" || (!orgName && sharedSchool);
+
+  let connectionBlock;
+  if (isFrat) {
+    connectionBlock = `ORG CONNECTION: The sender and recipient are both members of ${orgName} (same fraternity or sorority).
+After the intro sentence, open with "As a fellow ${orgName} brother" or "As a fellow ${orgName} sister" — choose whichever fits the context.
+This is the strongest connection and takes priority over any school hook.
+Never say "I noticed you also went to [School]" or any observational phrasing — write it how a real person would say it.`;
+  } else if (isClub) {
+    connectionBlock = `ORG CONNECTION: The sender and recipient are both members of ${orgName} (same student org or club).
+After the intro sentence, open with "As a fellow ${orgName} member" — this is the primary hook.
+Never say "I noticed you also went to [School]" or any observational phrasing.`;
+  } else if (isAlumni || sharedSchool) {
+    connectionBlock = `SHARED SCHOOL: Both sender and recipient attended ${userProfile.school || "[school]"}.
+Reference this naturally after the intro — e.g. "As a fellow [School] student" or "I saw you're a [School] alum."
+Never say "I noticed you also went to [School]" — write it how a real person would.`;
+  } else {
+    connectionBlock = `NO SHARED CONNECTION: No confirmed shared school or org.
+Use one specific, verified observation about the recipient's current role or career path as the hook. Never invent a connection.`;
+  }
+
+  // ── CTA ─────────────────────────────────────────────────────────────────────
+  let ctaRule;
   const sl = stage.toLowerCase();
   if (sl.includes("building early connections") || sl.includes("exploring")) {
-    ctaRule = `Ask (soft): express genuine curiosity and close with something like "would love to hear your perspective if you ever have a few minutes." No pressure, no job ask.`;
+    ctaRule = `Ask (soft): vary naturally — e.g. "would love to hear your perspective if you ever have a few minutes" or "no pressure at all, but if you ever have a few minutes I'd love to hear your thoughts"`;
   } else if (sl.includes("actively looking for any relevant")) {
-    ctaRule = `Ask (warm): slightly more direct — "would love to connect and learn more about your path" — keep it relational, not transactional.`;
+    ctaRule = `Ask (warm): vary naturally — e.g. "would love to connect and learn more about your path" or "would love to find a time to connect if you're open to it"`;
   } else if (sl.includes("sophomore") || sl.includes("junior") || sl.includes("senior")) {
-    ctaRule = `Ask (direct): reference their target areas explicitly — "would love to find time for a quick call${areas !== "not provided" ? ` about ${areas} recruiting` : ""} if you're open to it."`;
+    const areasPhrase = areas !== "not provided" ? ` about ${areas} recruiting` : "";
+    ctaRule = `Ask (direct): vary naturally between these two themes — pick whichever sounds more natural for this specific email:
+Theme 1 (connection): "would love to hop on a quick call${areasPhrase} if you're open to it"
+Theme 2 (acknowledging busy): "I know you're likely busy, but would love to find a time that works${areasPhrase}"`;
+  } else {
+    ctaRule = `Ask: vary naturally between these two themes — pick whichever sounds more natural for this specific email:
+Theme 1 (connection): "would love to hop on a quick call" or "would love to find a time to connect"
+Theme 2 (acknowledging busy): "I know you're likely busy, but would love to find a time that works"
+Never desperate, never overly formal, never stiff.`;
   }
 
   const resumeRule = userProfile.attach_resume
     ? `RESUME: The sender is attaching their resume. Include exactly one natural mention — e.g. "I've attached my resume for reference" — placed where it fits. Do not force it at the end.`
     : `RESUME: attach_resume is false. Do NOT mention a resume anywhere in the email under any circumstances.`;
 
-  const sharedSchoolNote = sharedSchool
-    ? `SCHOOL HOOK: The sender and recipient both attended ${userProfile.school}. Lead with this — it is the strongest opener. State it plainly: "I noticed you went to [School] too" or "I saw you're a [School] alum."`
-    : `SCHOOL HOOK: No confirmed shared school. Use one specific, verified observation about the recipient's role or career path as the hook instead. Never invent a hook.`;
-
-  const subjectLine = sharedSchool
-    ? `If shared university confirmed: "[School Name] Student Reaching Out" or "[School Name] Student Interested in [Recipient's Firm or Field]" — e.g. "${userProfile.school || "School"} Student Interested in IB at [Firm]"`
-    : `No shared university: "[Sender School] Student Interested in [Recipient's Field or Firm]" — only reference firms or schools verified in the data.`;
+  // ── Subject line ────────────────────────────────────────────────────────────
+  let subjectInstruction;
+  if (isFrat) {
+    subjectInstruction = `"Fellow ${orgName} Brother" or "Fellow ${orgName} Sister" depending on context`;
+  } else if (isClub) {
+    subjectInstruction = `"Fellow ${orgName} Member"`;
+  } else if (sharedSchool || isAlumni) {
+    const school = userProfile.school || "[School]";
+    subjectInstruction = `"${school} Student Reaching Out" or "${school} Student Interested in [Recipient's Field or Firm]" — only reference firms verified in the data`;
+  } else {
+    subjectInstruction = `"[Sender School] Student Interested in [Recipient's Field or Firm]" — only reference firms or schools verified in the data`;
+  }
 
   return `CRITICAL RULES — NON-NEGOTIABLE. Violating any of these is a failure:
 1. Only reference facts explicitly listed in the RECIPIENT DATA block. Never invent or infer details.
-2. Do not reference a school the recipient attended unless it is explicitly listed in their education data (or the SCHOOL HOOK note below).
+2. Do not reference a school the recipient attended unless it is explicitly listed in their education data.
 3. Do not reference a firm unless it is explicitly listed as their current or previous employer.
 4. Do not imply shared experiences unless that connection is explicitly verified in both sender and recipient data.
 5. If a field is marked NOT AVAILABLE, do not mention it, imply it, or compensate by guessing around it.
-6. If there is limited genuine overlap between sender and recipient, write a shorter and more honest cold outreach email. Do not fabricate connections.
+6. If there is limited genuine overlap, write a shorter and more honest email. Do not fabricate connections.
 7. Never summarize the recipient's About section back to them.
-8. Never mention how long the sender has been interested in finance or any personal backstory beyond their current school, year, and major.
+8. Never mention how long the sender has been interested in finance or any backstory beyond school, year, and major.
+9. Never reference the recipient's graduation year, class year, or imply they are recently graduated — they are working professionals.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -172,64 +212,72 @@ ${senderBlock}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-STEP 1 — VERIFY SHARED BACKGROUND (do this silently before writing anything):
-- Does the sender's school exactly match any school in the recipient's education data? If yes → shared university confirmed.
-- Do any of the sender's activities or clubs match any organization in the recipient's profile? If yes → shared org confirmed.
-- Does the sender's hometown match the recipient's location? If yes → shared location noted.
-Only use a connection if it is confirmed here. If nothing is confirmed, do not force one.
+STEP 1 — IDENTIFY THE CONNECTION:
+${connectionBlock}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-${sharedSchoolNote}
+STEP 2 — WRITE THE EMAIL:
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-STEP 2 — WRITE THE EMAIL using this exact structure:
+OPENER VARIANCE — rotate naturally, do not always pick the same one:
+- Option A: "Hope you're doing well!" as a standalone line before the intro
+- Option B: No opener — go straight into the intro sentence
+- Option C: A brief natural variant — e.g. "Hope your week is going well!"
+Pick whichever feels most natural for this specific email.
 
 1. Greeting: Hi [recipient first name only],
    — Never use Mr. or Ms. Regardless of seniority, always use first name only.
 
-2. Intro (1 sentence): "My name is [sender full name], and I'm a [year] at [school] studying [major]."
+2. [Optional opener per OPENER VARIANCE above]
+
+3. Intro (1 sentence): "My name is [sender full name], and I'm a [year] at [school] studying [major]."
    — Use the exact school name and major from SENDER DATA.
 
-3. Hook (1 sentence): The single strongest verified connection from Step 1, stated plainly.
-   — If shared university confirmed: lead with that — e.g. "I noticed you went to [School] too" or "I saw you're a [School] alum."
-   — If no shared university: one specific, verified observation about the recipient's career based ONLY on confirmed RECIPIENT DATA. If no strong hook exists, use a brief honest reason for reaching out based on their field or role.
-   — Never invent a hook. Never compliment a trait directly.
+4. Hook (1 sentence): Use the connection from Step 1, stated naturally (not observationally).
+   — Org hook: "As a fellow [Org] brother / sister / member, I wanted to reach out."
+   — School hook: natural phrasing, e.g. "As a fellow [School] student" or "I saw you're a [School] alum"
+   — Career hook: one specific verified fact about their current role or firm
 
-4. Body (1–2 sentences): Genuine curiosity about how they broke into finance and the path they took. Specific to what this person actually did.
+5. Body (1–2 sentences): Genuine curiosity about their specific path — written how a real person would ask.
+   HOOK SPECIFICITY — tailor this to the exact person, not a generic phrase:
+   - Named IB firm (Goldman, Morgan Stanley, JPMorgan, Lazard, Evercore, Barclays, Jefferies, etc.): use "your path to [Firm]" or "how you ended up at [Firm]" or "what drew you to [Firm]"
+   - Specific group within a bank (Restructuring, Healthcare, TMT, Leveraged Finance, M&A, etc.): use "your path into [group]" or "what drew you to [group] banking"
+   - Generic or unclear finance role: use "how you broke into finance"
+   Never use AI-sounding phrases: "breaking into coverage", "your trajectory", "your impressive background", "your finance journey", "your path in finance"
 
-5. ${ctaRule}
+6. ${ctaRule}
 
-6. ${resumeRule}
+7. ${resumeRule}
 
-7. Sign-off: Best,\\n[sender full name]
+8. Sign-off: Best,\\n[sender full name]
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-SUBJECT LINE RULES:
-- ${subjectLine}
-- Never say "Fellow Alum" — the sender is a current student, not an alum.
-- Never use "Quick Question" or any vague filler subject line.
+SUBJECT LINE: ${subjectInstruction}
+— Never use an em dash in the subject line
+— Never say "Fellow Alum" (sender is a current student, not an alum)
+— Never say "Quick Question" or any vague filler
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 HARD LIMITS:
 - Under 120 words total (body only, excluding subject and sign-off)
-- Email must sound like a real human wrote it — not AI, not a template
+- Every email must read like it was written by a real college student — genuine, direct, not stiff, not AI
 
 BANNED PHRASES — do not use any of these under any circumstances:
 "your journey", "truly impressive", "your impressive background",
 "I came across your profile and was impressed", "I would greatly appreciate",
 "thank you for considering", "I hope this email finds you well",
 "I hope this note finds you well", "which aligns with my goals",
-"which aligns perfectly", "I noticed you also" (unless the shared connection is explicitly verified),
+"which aligns perfectly", "I noticed you also went to [School]",
 "extensive experience", "really resonated", "built a strong career",
 "any insights you could share", "I look forward to", "which is fascinating",
+"even a quick call would mean a lot",
+"breaking into coverage", "your trajectory", "your finance journey",
 "15 minutes" or any specific time duration for the ask,
 any phrase that summarizes the recipient's About section,
 any phrase that invents a specific deal, project, or initiative not in the data,
-em dashes (—) in any form — rewrite any sentence that would use one to avoid it entirely; use a period, comma, or restructure the sentence instead
+em dashes (—) anywhere — in the email body or subject line — rewrite using a period, comma, or restructured sentence
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -495,9 +543,9 @@ router.post("/score-contacts", async (req, res) => {
 });
 
 // ─── POST /find/generate-batch ────────────────────────────────────────────────
-// Body: { contacts: [...], assumedSchool? }
+// Body: { contacts: [...], assumedSchool?, orgName?, relationshipType? }
 router.post("/generate-batch", async (req, res) => {
-  const { contacts, assumedSchool } = req.body;
+  const { contacts, assumedSchool, orgName, relationshipType } = req.body;
   if (!Array.isArray(contacts) || contacts.length === 0) {
     return res.status(400).json({ error: "contacts array required" });
   }
@@ -528,7 +576,7 @@ router.post("/generate-batch", async (req, res) => {
         const sharedSchool = schoolMatch || (!contact.school && !!assumedSchool);
 
         const profileData = buildProfileString(contact, sharedSchool ? userSchool : null);
-        const prompt = buildBatchEmailPrompt(profileData, up, sharedSchool);
+        const prompt = buildBatchEmailPrompt(profileData, up, sharedSchool, orgName, relationshipType);
 
         const completion = await openai.chat.completions.create({
           model: "gpt-4o-mini",

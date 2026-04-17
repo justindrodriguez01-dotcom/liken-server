@@ -356,6 +356,8 @@ function CSVSection({ profile }) {
   const [mapping, setMapping] = useState({})
   // Split-name support: when CSV has First Name + Last Name columns separately
   const [splitName, setSplitName] = useState({ first: null, last: null })
+  const [orgName, setOrgName] = useState('')
+  const [relationshipType, setRelationshipType] = useState('')
   const [scored, setScored] = useState([])
   const [selected, setSelected] = useState(new Set())
   const [emails, setEmails] = useState({})
@@ -491,6 +493,8 @@ function CSVSection({ profile }) {
             contacts: [contact],
             userProfile: profile,
             assumedSchool: profile?.school || '',
+            orgName,
+            relationshipType,
           }),
         })
         const r = data.results?.[0]
@@ -516,7 +520,7 @@ function CSVSection({ profile }) {
       try {
         const data = await apiFetch('/find/generate-batch', {
           method: 'POST',
-          body: JSON.stringify({ contacts: [contact], userProfile: profile, assumedSchool: profile?.school || '' }),
+          body: JSON.stringify({ contacts: [contact], userProfile: profile, assumedSchool: profile?.school || '', orgName, relationshipType }),
         })
         const r = data.results?.[0]
         if (r) {
@@ -601,6 +605,7 @@ function CSVSection({ profile }) {
     setStep(CSV_STEPS.IDLE)
     setColumns([]); setAllRows([]); setMapping({}); setScored([])
     setSelected(new Set()); setEmails({}); setUploadError('')
+    setOrgName(''); setRelationshipType('')
   }
 
   const highCount   = scored.filter(c => c.matchLevel === 'High').length
@@ -727,7 +732,37 @@ function CSVSection({ profile }) {
               </div>
             ))}
           </div>
-          <div className="flex gap-2">
+          {/* Organization context */}
+          <div className="mt-4 pt-4 border-t border-[#E8E6E3]">
+            <p className="text-[12px] font-medium text-gray-700 mb-3">Organization context <span className="text-gray-400 font-normal">(optional — improves email personalization)</span></p>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="field-label">Organization name</label>
+                <input
+                  type="text"
+                  value={orgName}
+                  onChange={e => setOrgName(e.target.value)}
+                  placeholder="e.g. PCT, Finance Club"
+                  className="w-full px-2.5 py-2 border border-[#D4D2CF] rounded-md text-[12px] text-gray-900 bg-white outline-none focus:border-[#0D7377] focus:ring-2 focus:ring-[#0D7377]/10"
+                />
+              </div>
+              <div>
+                <label className="field-label">Relationship type</label>
+                <select
+                  value={relationshipType}
+                  onChange={e => setRelationshipType(e.target.value)}
+                  className="w-full px-2.5 py-2 border border-[#D4D2CF] rounded-md text-[12px] text-gray-900 bg-white outline-none focus:border-[#0D7377] focus:ring-2 focus:ring-[#0D7377]/10"
+                >
+                  <option value="">— not specified —</option>
+                  <option value="fraternity_sorority">Same fraternity / sorority</option>
+                  <option value="student_org">Same student org or club</option>
+                  <option value="general_alumni">General alumni network</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex gap-2 mt-4">
             <button onClick={scoreContacts} className="btn-primary">Score contacts</button>
             <button onClick={reset} className="btn-ghost">Cancel</button>
           </div>
