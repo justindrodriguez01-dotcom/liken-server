@@ -8,12 +8,49 @@ console.log("[waitlist] module loaded — GMAIL_APP_PASSWORD defined:", !!proces
 
 function makeTransporter() {
   return nodemailer.createTransport({
-    service: "gmail",
+    host: "smtp.gmail.com",
+    port: 587,
+    secure: false, // STARTTLS
     auth: {
       user: "justindrodriguez01@gmail.com",
       pass: process.env.GMAIL_APP_PASSWORD,
     },
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 10000,
   });
+}
+
+async function sendEmails(normalizedEmail, timestamp) {
+  const transporter = makeTransporter();
+
+  console.log("[waitlist] sending notification email to justin...");
+  try {
+    const info = await transporter.sendMail({
+      from: "justindrodriguez01@gmail.com",
+      to: "justindrodriguez01@gmail.com",
+      subject: "New ColdMatch waitlist signup",
+      text: `New signup:\n\nEmail: ${normalizedEmail}\nTimestamp: ${timestamp}`,
+    });
+    console.log("[waitlist] notification email sent:", info.messageId);
+  } catch (err) {
+    console.error("[waitlist] notification email FAILED:", err.message, err.code);
+  }
+
+  console.log("[waitlist] sending confirmation email to", normalizedEmail);
+  try {
+    const info = await transporter.sendMail({
+      from: "justindrodriguez01@gmail.com",
+      to: normalizedEmail,
+      subject: "You're on the ColdMatch waitlist",
+      text: "Hey — you're on the list. We'll reach out when ColdMatch is ready for you. In the meantime, follow along at coldmatch.co. — Justin, ColdMatch",
+    });
+    console.log("[waitlist] confirmation email sent:", info.messageId);
+  } catch (err) {
+    console.error("[waitlist] confirmation email FAILED:", err.message, err.code);
+  }
+
+  transporter.close();
 }
 
 router.post("/", async (req, res) => {
@@ -38,50 +75,23 @@ router.post("/", async (req, res) => {
     );
     console.log("[waitlist] DB insert result rows:", result.rows.length, "(0 = duplicate)");
 
-    if (result.rows.length === 0) {
-      console.log("[waitlist] duplicate signup, skipping emails");
-      return res.json({ ok: true });
-    }
-
-    console.log("[waitlist] GMAIL_APP_PASSWORD defined at send time:", !!process.env.GMAIL_APP_PASSWORD);
-
-    if (!process.env.GMAIL_APP_PASSWORD) {
-      console.warn("[waitlist] GMAIL_APP_PASSWORD not set — skipping emails");
-      return res.json({ ok: true });
-    }
-
-    const transporter = makeTransporter();
-
-    console.log("[waitlist] sending notification email to justin...");
-    try {
-      const notifInfo = await transporter.sendMail({
-        from: "justindrodriguez01@gmail.com",
-        to: "justindrodriguez01@gmail.com",
-        subject: "New ColdMatch waitlist signup",
-        text: `New signup:\n\nEmail: ${normalizedEmail}\nTimestamp: ${timestamp}`,
-      });
-      console.log("[waitlist] notification email sent:", notifInfo.messageId);
-    } catch (notifErr) {
-      console.error("[waitlist] notification email FAILED:", notifErr);
-    }
-
-    console.log("[waitlist] sending confirmation email to", normalizedEmail, "...");
-    try {
-      const confirmInfo = await transporter.sendMail({
-        from: "justindrodriguez01@gmail.com",
-        to: normalizedEmail,
-        subject: "You're on the ColdMatch waitlist",
-        text: "Hey — you're on the list. We'll reach out when ColdMatch is ready for you. In the meantime, follow along at coldmatch.co. — Justin, ColdMatch",
-      });
-      console.log("[waitlist] confirmation email sent:", confirmInfo.messageId);
-    } catch (confirmErr) {
-      console.error("[waitlist] confirmation email FAILED:", confirmErr);
-    }
-
+    // Respond immediately — don't block on email delivery
     res.json({ ok: true });
+
+    if (result.rows.length > 0 && process.env.GMAIL_APP_PASSWORD) {
+      console.log("[waitlist] GMAIL_APP_PASSWORD defined at send time:", !!process.env.GMAIL_APP_PASSWORD);
+      // Fire-and-forget — errors are logged inside sendEmails
+      sendEmails(normalizedEmail, timestamp).catch((err) =>
+        console.error("[waitlist] sendEmails unexpected error:", err)
+      );
+    } else if (!process.env.GMAIL_APP_PASSWORD) {
+      console.warn("[waitlist] GMAIL_APP_PASSWORD not set — skipping emails");
+    } else {
+      console.log("[waitlist] duplicate signup — skipping emails");
+    }
   } catch (err) {
     console.error("[waitlist] route error:", err);
-    res.status(500).json({ error: "server error" });
+    if (!res.headersSent) res.status(500).json({ error: "server error" });
   }
 });
 
