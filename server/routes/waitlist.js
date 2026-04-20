@@ -1,64 +1,16 @@
 const express = require("express");
-const nodemailer = require("nodemailer");
+const { Resend } = require("resend");
 const { query } = require("../db");
 
 const router = express.Router();
 
-console.log("[waitlist] module loaded — GMAIL_APP_PASSWORD defined:", !!process.env.GMAIL_APP_PASSWORD);
-
-function makeTransporter() {
-  return nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 587,
-    secure: false, // STARTTLS
-    auth: {
-      user: "justindrodriguez01@gmail.com",
-      pass: process.env.GMAIL_APP_PASSWORD,
-    },
-    connectionTimeout: 10000,
-    greetingTimeout: 10000,
-    socketTimeout: 10000,
-  });
-}
-
-async function sendEmails(normalizedEmail, timestamp) {
-  const transporter = makeTransporter();
-
-  console.log("[waitlist] sending notification email to justin...");
-  try {
-    const info = await transporter.sendMail({
-      from: "justindrodriguez01@gmail.com",
-      to: "justindrodriguez01@gmail.com",
-      subject: "New ColdMatch waitlist signup",
-      text: `New signup:\n\nEmail: ${normalizedEmail}\nTimestamp: ${timestamp}`,
-    });
-    console.log("[waitlist] notification email sent:", info.messageId);
-  } catch (err) {
-    console.error("[waitlist] notification email FAILED:", err.message, err.code);
-  }
-
-  console.log("[waitlist] sending confirmation email to", normalizedEmail);
-  try {
-    const info = await transporter.sendMail({
-      from: "justindrodriguez01@gmail.com",
-      to: normalizedEmail,
-      subject: "You're on the ColdMatch waitlist",
-      text: "Hey — you're on the list. We'll reach out when ColdMatch is ready for you. In the meantime, follow along at coldmatch.co. — Justin, ColdMatch",
-    });
-    console.log("[waitlist] confirmation email sent:", info.messageId);
-  } catch (err) {
-    console.error("[waitlist] confirmation email FAILED:", err.message, err.code);
-  }
-
-  transporter.close();
-}
+console.log("[waitlist] module loaded — RESEND_API_KEY defined:", !!process.env.RESEND_API_KEY);
 
 router.post("/", async (req, res) => {
   console.log("[waitlist] POST /waitlist hit — body:", req.body);
 
   const { email } = req.body;
   if (!email || !email.includes("@")) {
-    console.log("[waitlist] invalid email rejected:", email);
     return res.status(400).json({ error: "valid email required" });
   }
 
@@ -73,22 +25,41 @@ router.post("/", async (req, res) => {
        RETURNING email`,
       [normalizedEmail]
     );
-    console.log("[waitlist] DB insert result rows:", result.rows.length, "(0 = duplicate)");
+    console.log("[waitlist] DB insert rows:", result.rows.length, "(0 = duplicate)");
 
-    // Respond immediately — don't block on email delivery
     res.json({ ok: true });
 
-    if (result.rows.length > 0 && process.env.GMAIL_APP_PASSWORD) {
-      console.log("[waitlist] GMAIL_APP_PASSWORD defined at send time:", !!process.env.GMAIL_APP_PASSWORD);
-      // Fire-and-forget — errors are logged inside sendEmails
-      sendEmails(normalizedEmail, timestamp).catch((err) =>
-        console.error("[waitlist] sendEmails unexpected error:", err)
-      );
-    } else if (!process.env.GMAIL_APP_PASSWORD) {
-      console.warn("[waitlist] GMAIL_APP_PASSWORD not set — skipping emails");
-    } else {
-      console.log("[waitlist] duplicate signup — skipping emails");
+    if (result.rows.length === 0) {
+      console.log("[waitlist] duplicate — skipping emails");
+      return;
     }
+
+    if (!process.env.RESEND_API_KEY) {
+      console.warn("[waitlist] RESEND_API_KEY not set — skipping emails");
+      return;
+    }
+
+    const resend = new Resend(process.env.RESEND_API_KEY);
+
+    console.log("[waitlist] sending notification email to justin...");
+    const { error: notifErr } = await resend.emails.send({
+      from: "ColdMatch <onboarding@resend.dev>",
+      to: "justindrodriguez01@gmail.com",
+      subject: "New ColdMatch waitlist signup",
+      text: `New signup:\n\nEmail: ${normalizedEmail}\nTimestamp: ${timestamp}`,
+    });
+    if (notifErr) console.error("[waitlist] notification email FAILED:", notifErr);
+    else console.log("[waitlist] notification email sent");
+
+    console.log("[waitlist] sending confirmation email to", normalizedEmail);
+    const { error: confirmErr } = await resend.emails.send({
+      from: "ColdMatch <onboarding@resend.dev>",
+      to: normalizedEmail,
+      subject: "You're on the ColdMatch waitlist",
+      text: "Hey — you're on the list. We'll reach out when ColdMatch is ready for you. In the meantime, follow along at coldmatch.co. — Justin, ColdMatch",
+    });
+    if (confirmErr) console.error("[waitlist] confirmation email FAILED:", confirmErr);
+    else console.log("[waitlist] confirmation email sent");
   } catch (err) {
     console.error("[waitlist] route error:", err);
     if (!res.headersSent) res.status(500).json({ error: "server error" });
