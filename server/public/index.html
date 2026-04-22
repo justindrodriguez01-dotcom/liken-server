@@ -289,18 +289,14 @@
       border-bottom: 1px solid #e0e0e0;
       background: #f6f8fc;
     }
-    .gmail-m {
-      width: 20px; height: 20px; border-radius: 3px;
-      background: #ea4335; color: white;
-      font-size: 11px; font-weight: 700;
-      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-    }
+    .gmail-logo { display: flex; align-items: center; flex-shrink: 0; }
+    .gmail-wordmark { font-size: 13px; font-weight: 400; color: #5f6368; letter-spacing: -0.3px; margin-left: 5px; }
     .gmail-folder { font-size: 13px; font-weight: 600; color: #202124; }
     .gmail-count  { font-size: 12px; font-weight: 400; color: #5f6368; }
     .gmail-rows { display: flex; flex-direction: column; }
     .gmail-row {
       display: flex; align-items: center; gap: 8px;
-      padding: 5px 12px; border-bottom: 1px solid #f1f3f4;
+      padding: 9px 12px; border-bottom: 1px solid #f1f3f4;
       cursor: default;
     }
     .gmail-row:hover { background: #f2f6fc; }
@@ -650,15 +646,29 @@
               <!-- Phase B: Gmail drafts view -->
               <div class="scene" id="hero-gmail">
                 <div class="gmail-header">
-                  <div class="gmail-m">M</div>
+                  <div class="gmail-logo">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 18" width="24" height="18">
+                      <rect width="24" height="18" rx="2" fill="#fff" stroke="#e8eaed" stroke-width="0.75"/>
+                      <path d="M0 2 L12 11 L24 2 L24 16 L0 16 Z" fill="#fff"/>
+                      <path d="M0 2 L12 11 L24 2" fill="none"/>
+                      <path d="M0 2 L0 16 L6 10 Z" fill="#C5221F"/>
+                      <path d="M24 2 L24 16 L18 10 Z" fill="#1A73E8"/>
+                      <path d="M0 2 L12 11 L12 16 L0 16 Z" fill="#EA4335"/>
+                      <path d="M24 2 L12 11 L12 16 L24 16 Z" fill="#4285F4"/>
+                      <path d="M0 2 L12 11 L24 2 Z" fill="white"/>
+                      <path d="M0 2 L12 11 L12 2 Z" fill="#EA4335"/>
+                      <path d="M24 2 L12 11 L12 2 Z" fill="#4285F4"/>
+                    </svg>
+                    <span class="gmail-wordmark">Gmail</span>
+                  </div>
                   <span class="gmail-folder">Drafts</span>
                   <span class="gmail-count">(50)</span>
                 </div>
                 <div class="gmail-rows">
                   <div class="gmail-row">
-                    <div class="gmail-avatar">AC</div>
+                    <div class="gmail-avatar">RK</div>
                     <div class="gmail-row-content">
-                      <span class="gmail-subject">Michigan Ross Student — IB at Goldman</span><span class="gmail-sep"> – </span><span class="gmail-preview">Hi Ryan, I hope you are doing well. My name is Justin...</span>
+                      <span class="gmail-subject">Michigan Ross Student Interested in IB at Goldman</span><span class="gmail-sep"> – </span><span class="gmail-preview">Hi Ryan, I hope you are doing well. My name is Justin...</span>
                     </div>
                     <span class="gmail-draft-label">Draft</span>
                   </div>
@@ -672,28 +682,28 @@
                   <div class="gmail-row">
                     <div class="gmail-avatar">PP</div>
                     <div class="gmail-row-content">
-                      <span class="gmail-subject">Ross Student — Quick Question</span><span class="gmail-sep"> – </span><span class="gmail-preview">Hi Priya, My name is Justin Rodriguez and I am a sophomore...</span>
+                      <span class="gmail-subject">Ross Student Reaching Out</span><span class="gmail-sep"> – </span><span class="gmail-preview">Hi Priya, My name is Justin Rodriguez and I am a sophomore...</span>
                     </div>
                     <span class="gmail-draft-label">Draft</span>
                   </div>
                   <div class="gmail-row">
                     <div class="gmail-avatar">JL</div>
                     <div class="gmail-row-content">
-                      <span class="gmail-subject">Michigan Student Interested in PE at Blackstone</span><span class="gmail-sep"> – </span><span class="gmail-preview">Hi Jordan, I saw that you went to Ross before heading to...</span>
+                      <span class="gmail-subject">Michigan Ross Student Interested in IB at Evercore</span><span class="gmail-sep"> – </span><span class="gmail-preview">Hi Jordan, I saw that you went to Ross before heading to...</span>
                     </div>
                     <span class="gmail-draft-label">Draft</span>
                   </div>
                   <div class="gmail-row">
                     <div class="gmail-avatar">MR</div>
                     <div class="gmail-row-content">
-                      <span class="gmail-subject">Fellow Ross Alum at Morgan Stanley</span><span class="gmail-sep"> – </span><span class="gmail-preview">Hi Marcus, Hope you are doing well. I noticed you also...</span>
+                      <span class="gmail-subject">Michigan Ross Student Interested in IB at Lazard</span><span class="gmail-sep"> – </span><span class="gmail-preview">Hi Marcus, Hope you are doing well. I noticed you also...</span>
                     </div>
                     <span class="gmail-draft-label">Draft</span>
                   </div>
                   <div class="gmail-row">
                     <div class="gmail-avatar">EP</div>
                     <div class="gmail-row-content">
-                      <span class="gmail-subject">Michigan Ross Student — Interested in S&amp;T</span><span class="gmail-sep"> – </span><span class="gmail-preview">Hi Emma, My name is Justin and I am studying Business at...</span>
+                      <span class="gmail-subject">Michigan Ross Student Interested in IB at Jefferies</span><span class="gmail-sep"> – </span><span class="gmail-preview">Hi Emma, My name is Justin and I am studying Business at...</span>
                     </div>
                     <span class="gmail-draft-label">Draft</span>
                   </div>
