@@ -285,33 +285,37 @@
     /* ── Gmail drafts view (hero phase 3) ── */
     .gmail-header {
       display: flex; align-items: center; gap: 8px;
-      padding-bottom: 10px; margin-bottom: 6px;
-      border-bottom: 1px solid rgba(0,0,0,0.07);
+      padding: 8px 12px;
+      border-bottom: 1px solid #e0e0e0;
+      background: #f6f8fc;
     }
     .gmail-m {
-      width: 22px; height: 22px; border-radius: 4px;
+      width: 20px; height: 20px; border-radius: 3px;
       background: #ea4335; color: white;
       font-size: 11px; font-weight: 700;
       display: flex; align-items: center; justify-content: center; flex-shrink: 0;
     }
-    .gmail-folder { font-size: 13px; color: var(--text-secondary); }
-    .gmail-count  { font-size: 13px; font-weight: 700; color: var(--text); }
+    .gmail-folder { font-size: 13px; font-weight: 600; color: #202124; }
+    .gmail-count  { font-size: 12px; font-weight: 400; color: #5f6368; }
     .gmail-rows { display: flex; flex-direction: column; }
     .gmail-row {
-      display: flex; align-items: center; gap: 9px;
-      padding: 7px 0; border-bottom: 1px solid rgba(0,0,0,0.05);
+      display: flex; align-items: center; gap: 8px;
+      padding: 5px 12px; border-bottom: 1px solid #f1f3f4;
+      cursor: default;
     }
+    .gmail-row:hover { background: #f2f6fc; }
     .gmail-row:last-child { border-bottom: none; }
     .gmail-avatar {
-      width: 24px; height: 24px; border-radius: 50%;
-      background: #e8f5f0; flex-shrink: 0;
+      width: 26px; height: 26px; border-radius: 50%;
+      background: #e8eaed; flex-shrink: 0;
       display: flex; align-items: center; justify-content: center;
-      font-size: 9px; font-weight: 700; color: var(--accent);
+      font-size: 10px; font-weight: 500; color: #5f6368;
     }
-    .gmail-row-content { flex: 1; min-width: 0; }
-    .gmail-subject { font-size: 11px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 1px; }
-    .gmail-preview { font-size: 10px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .gmail-draft-pill { font-size: 9px; font-weight: 600; color: #ea4335; background: #fef2f2; border-radius: 3px; padding: 2px 5px; flex-shrink: 0; }
+    .gmail-row-content { flex: 1; min-width: 0; display: flex; align-items: baseline; overflow: hidden; }
+    .gmail-subject { font-size: 12px; font-weight: 600; color: #202124; white-space: nowrap; flex-shrink: 0; }
+    .gmail-sep { font-size: 12px; color: #9aa0a6; padding: 0 3px; flex-shrink: 0; }
+    .gmail-preview { font-size: 12px; color: #5f6368; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 400; }
+    .gmail-draft-label { font-size: 11px; font-weight: 500; color: #d93025; flex-shrink: 0; margin-left: 4px; }
     .gmail-bar {
       margin-top: 8px; background: var(--accent); color: white;
       border-radius: 6px; font-size: 11px; font-weight: 600;
@@ -648,56 +652,50 @@
                 <div class="gmail-header">
                   <div class="gmail-m">M</div>
                   <span class="gmail-folder">Drafts</span>
-                  <strong class="gmail-count">50</strong>
+                  <span class="gmail-count">(50)</span>
                 </div>
                 <div class="gmail-rows">
                   <div class="gmail-row">
                     <div class="gmail-avatar">AC</div>
                     <div class="gmail-row-content">
-                      <div class="gmail-subject">Michigan Ross Student Interested in IB at Goldman</div>
-                      <div class="gmail-preview">Hi Ryan, I hope you are doing well...</div>
+                      <span class="gmail-subject">Michigan Ross Student — IB at Goldman</span><span class="gmail-sep"> – </span><span class="gmail-preview">Hi Ryan, I hope you are doing well. My name is Justin...</span>
                     </div>
-                    <span class="gmail-draft-pill">Draft</span>
+                    <span class="gmail-draft-label">Draft</span>
                   </div>
                   <div class="gmail-row">
                     <div class="gmail-avatar">SK</div>
                     <div class="gmail-row-content">
-                      <div class="gmail-subject">Fellow PCT Brother</div>
-                      <div class="gmail-preview">Hi Sarah, I hope you are doing well...</div>
+                      <span class="gmail-subject">Fellow PCT Brother Reaching Out</span><span class="gmail-sep"> – </span><span class="gmail-preview">Hi Sarah, As a fellow PCT brother I wanted to reach out...</span>
                     </div>
-                    <span class="gmail-draft-pill">Draft</span>
+                    <span class="gmail-draft-label">Draft</span>
                   </div>
                   <div class="gmail-row">
                     <div class="gmail-avatar">PP</div>
                     <div class="gmail-row-content">
-                      <div class="gmail-subject">Ross Student Reaching Out</div>
-                      <div class="gmail-preview">Hi Priya, I hope you are doing well...</div>
+                      <span class="gmail-subject">Ross Student — Quick Question</span><span class="gmail-sep"> – </span><span class="gmail-preview">Hi Priya, My name is Justin Rodriguez and I am a sophomore...</span>
                     </div>
-                    <span class="gmail-draft-pill">Draft</span>
+                    <span class="gmail-draft-label">Draft</span>
                   </div>
                   <div class="gmail-row">
                     <div class="gmail-avatar">JL</div>
                     <div class="gmail-row-content">
-                      <div class="gmail-subject">Michigan Student Interested in PE at Blackstone</div>
-                      <div class="gmail-preview">Hi Jordan, I hope you are doing well...</div>
+                      <span class="gmail-subject">Michigan Student Interested in PE at Blackstone</span><span class="gmail-sep"> – </span><span class="gmail-preview">Hi Jordan, I saw that you went to Ross before heading to...</span>
                     </div>
-                    <span class="gmail-draft-pill">Draft</span>
+                    <span class="gmail-draft-label">Draft</span>
                   </div>
                   <div class="gmail-row">
                     <div class="gmail-avatar">MR</div>
                     <div class="gmail-row-content">
-                      <div class="gmail-subject">Fellow Ross Alum at Morgan Stanley</div>
-                      <div class="gmail-preview">Hi Marcus, I hope you are doing well...</div>
+                      <span class="gmail-subject">Fellow Ross Alum at Morgan Stanley</span><span class="gmail-sep"> – </span><span class="gmail-preview">Hi Marcus, Hope you are doing well. I noticed you also...</span>
                     </div>
-                    <span class="gmail-draft-pill">Draft</span>
+                    <span class="gmail-draft-label">Draft</span>
                   </div>
                   <div class="gmail-row">
                     <div class="gmail-avatar">EP</div>
                     <div class="gmail-row-content">
-                      <div class="gmail-subject">Michigan Ross Student, Quick Question</div>
-                      <div class="gmail-preview">Hi Emma, I hope you are doing well...</div>
+                      <span class="gmail-subject">Michigan Ross Student — Interested in S&amp;T</span><span class="gmail-sep"> – </span><span class="gmail-preview">Hi Emma, My name is Justin and I am studying Business at...</span>
                     </div>
-                    <span class="gmail-draft-pill">Draft</span>
+                    <span class="gmail-draft-label">Draft</span>
                   </div>
                 </div>
                 <div class="gmail-bar">50 drafts saved by ColdMatch</div>
