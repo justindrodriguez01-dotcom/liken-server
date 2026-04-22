@@ -56,7 +56,7 @@ router.post("/", async (req, res) => {
       from: "ColdMatch <noreply@coldmatch.co>",
       to: normalizedEmail,
       subject: "You're on the ColdMatch waitlist",
-      text: "Hey — you're on the list. We'll reach out when ColdMatch is ready for you. In the meantime, follow along at coldmatch.co. — Justin, ColdMatch",
+      text: "Hey, you are on the ColdMatch waitlist. We will reach out when it is ready for you. In the meantime, follow along at coldmatch.co.\n\nJustin, ColdMatch",
     });
     if (confirmErr) console.error("[waitlist] confirmation email FAILED:", confirmErr);
     else console.log("[waitlist] confirmation email sent");
