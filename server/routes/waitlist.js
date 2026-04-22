@@ -43,7 +43,7 @@ router.post("/", async (req, res) => {
 
     console.log("[waitlist] sending notification email to justin...");
     const { error: notifErr } = await resend.emails.send({
-      from: "ColdMatch <onboarding@resend.dev>",
+      from: "ColdMatch <noreply@coldmatch.co>",
       to: "justindrodriguez01@gmail.com",
       subject: "New ColdMatch waitlist signup",
       text: `New signup:\n\nEmail: ${normalizedEmail}\nTimestamp: ${timestamp}`,
@@ -53,7 +53,7 @@ router.post("/", async (req, res) => {
 
     console.log("[waitlist] sending confirmation email to", normalizedEmail);
     const { error: confirmErr } = await resend.emails.send({
-      from: "ColdMatch <onboarding@resend.dev>",
+      from: "ColdMatch <noreply@coldmatch.co>",
       to: normalizedEmail,
       subject: "You're on the ColdMatch waitlist",
       text: "Hey — you're on the list. We'll reach out when ColdMatch is ready for you. In the meantime, follow along at coldmatch.co. — Justin, ColdMatch",
